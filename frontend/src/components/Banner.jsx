@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 export default function Banner() {
   return (
-    <section className="bg-indigo-600 py-16 px-4">
+    <section className="bg-indigo-600 dark:bg-indigo-700 py-16 px-4">
       <div className="max-w-3xl mx-auto text-center">
 
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6">

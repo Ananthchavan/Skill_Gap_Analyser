@@ -21,28 +21,28 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="bg-white border-t border-gray-200 py-20 px-4">
+    <section className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 py-20 px-4">
       <div className="max-w-5xl mx-auto">
 
         {/* Section Header */}
         <div className="text-center mb-14">
-          <h2 className="text-3xl font-bold text-slate-900 mb-3">How it works</h2>
-          <p className="text-slate-600 text-base">Three steps from where you are to where you want to be.</p>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">How it works</h2>
+          <p className="text-slate-600 dark:text-slate-400 text-base">Three steps from where you are to where you want to be.</p>
         </div>
 
         {/* 3 Column Steps */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {steps.map((step) => (
-            <div key={step.number} className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+            <div key={step.number} className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
 
               {/* Step Number */}
               <span className="text-4xl font-bold text-indigo-600 mb-4 block">{step.number}</span>
 
               {/* Title */}
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">{step.title}</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">{step.title}</h3>
 
               {/* Description */}
-              <p className="text-slate-600 text-sm leading-relaxed">{step.description}</p>
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{step.description}</p>
 
             </div>
           ))}

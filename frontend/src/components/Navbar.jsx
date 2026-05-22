@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import ThemeToggle from './ThemeToggle'
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -17,16 +18,16 @@ export default function Navbar() {
 
             {/* Nav Links - hidden on mobile */}
             <div className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">
+              <Link to="/" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 Home
               </Link>
-              <Link to="/about" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">
+              <Link to="/about" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 About
               </Link>
-              <Link to="/dashboard" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">
+              <Link to="/dashboard" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 Dashboard
               </Link>
-              <Link to="/planner" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">
+              <Link to="/planner" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 Your Planner
               </Link>
             </div>
@@ -36,7 +37,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             <Link
               to="/login"
-              className="text-slate-600 hover:text-slate-900 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
               Login
             </Link>
@@ -46,9 +47,10 @@ export default function Navbar() {
             >
               Sign Up
             </Link>
+            <ThemeToggle />
             <Link
               to="/profile"
-              className="text-slate-600 hover:text-slate-900 text-sm font-medium px-3 py-2 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+              className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 transition-colors"
             >
               Profile
             </Link>
@@ -57,7 +59,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden text-slate-600 hover:text-slate-900 p-2 rounded-lg"
+            className="md:hidden text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 p-2 rounded-lg"
           >
             {menuOpen ? (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,22 +77,22 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {menuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200 px-4 pb-4">
+        <div className="md:hidden bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 px-4 pb-4">
           <div className="flex flex-col gap-1 pt-3">
-            <Link to="/" onClick={() => setMenuOpen(false)} className="text-slate-600 hover:text-slate-900 text-sm font-medium py-2">
+            <Link to="/" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
               Home
             </Link>
-            <Link to="/about" onClick={() => setMenuOpen(false)} className="text-slate-600 hover:text-slate-900 text-sm font-medium py-2">
+            <Link to="/about" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
               About
             </Link>
-            <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="text-slate-600 hover:text-slate-900 text-sm font-medium py-2">
+            <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
               Dashboard
             </Link>
-            <Link to="/planner" onClick={() => setMenuOpen(false)} className="text-slate-600 hover:text-slate-900 text-sm font-medium py-2">
+            <Link to="/planner" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
               Your Planner
             </Link>
-            <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-gray-200">
-              <Link to="/login" onClick={() => setMenuOpen(false)} className="text-slate-600 text-sm font-medium py-2">
+            <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-slate-800">
+              <Link to="/login" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 text-sm font-medium py-2">
                 Login
               </Link>
               <Link
@@ -100,7 +102,10 @@ export default function Navbar() {
               >
                 Sign Up
               </Link>
-              <Link to="/profile" onClick={() => setMenuOpen(false)} className="text-slate-600 text-sm font-medium py-2">
+              <div className="py-1">
+                <ThemeToggle />
+              </div>
+              <Link to="/profile" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 text-sm font-medium py-2">
                 Profile
               </Link>
             </div>

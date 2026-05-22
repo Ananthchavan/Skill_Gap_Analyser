@@ -18,13 +18,13 @@ const features = [
 
 export default function WhyUs() {
   return (
-    <section className="bg-gray-50 border-t border-gray-200 py-20 px-4">
+    <section className="bg-gray-50 dark:bg-slate-950 border-t border-gray-200 dark:border-slate-800 py-20 px-4">
       <div className="max-w-5xl mx-auto">
 
         {/* Section Header */}
         <div className="text-center mb-14">
-          <h2 className="text-3xl font-bold text-slate-900 mb-3">Why SGA.ai?</h2>
-          <p className="text-slate-600 text-base">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">Why SGA.ai?</h2>
+          <p className="text-slate-600 dark:text-slate-400 text-base">
             Not a generic AI wrapper. A purpose-built placement engine.
           </p>
         </div>
@@ -34,13 +34,13 @@ export default function WhyUs() {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="bg-white border border-gray-200 rounded-xl p-6"
+              className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-6"
             >
               {/* Title */}
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">{feature.title}</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">{feature.title}</h3>
 
               {/* Description */}
-              <p className="text-slate-600 text-sm leading-relaxed">{feature.description}</p>
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>
