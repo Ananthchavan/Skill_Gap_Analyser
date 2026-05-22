@@ -2,6 +2,8 @@ import Navbar from '../components/Navbar'
 import HeroSection from '../components/HeroSection'
 import HowItWorks from '../components/HowItWorks'
 import WhyUs from '../components/WhyUs'
+import Banner from '../components/Banner'
+import Footer from '../components/Footer'
 
 export default function LandingPage() {
   return (
@@ -10,7 +12,8 @@ export default function LandingPage() {
       <HeroSection />
       <HowItWorks />
       <WhyUs />
-      {/* Footer will go here next */}
+      <Banner />
+      <Footer />
     </div>
   )
 }
