@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar'
 import HeroSection from '../components/HeroSection'
 import HowItWorks from '../components/HowItWorks'
+import WhyUs from '../components/WhyUs'
 
 export default function LandingPage() {
   return (
@@ -8,7 +9,8 @@ export default function LandingPage() {
       <Navbar />
       <HeroSection />
       <HowItWorks />
-      {/* WhyUs, Footer will go here next */}
+      <WhyUs />
+      {/* Footer will go here next */}
     </div>
   )
 }
