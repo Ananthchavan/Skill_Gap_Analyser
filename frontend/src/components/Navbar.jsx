@@ -18,12 +18,12 @@ export default function Navbar() {
 
             {/* Nav Links - hidden on mobile */}
             <div className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
+              <a href="#hero-section" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 Home
-              </Link>
-              <Link to="/about" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
+              </a>
+              <a href="#how-it-works" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 About
-              </Link>
+              </a>
               <Link to="/dashboard" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 Dashboard
               </Link>
@@ -85,12 +85,12 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 px-4 pb-4">
           <div className="flex flex-col gap-1 pt-3">
-            <Link to="/" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
+            <a href="#hero-section" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
               Home
-            </Link>
-            <Link to="/about" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
+            </a>
+            <a href="#how-it-works" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
               About
-            </Link>
+            </a>
             <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
               Dashboard
             </Link>

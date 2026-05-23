@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 export default function HeroSection() {
   return (
-    <section className="bg-gray-50 dark:bg-slate-950 py-24 px-4">
+    <section id="hero-section" className="bg-gray-50 dark:bg-slate-950 py-24 px-4">
       <div className="max-w-3xl mx-auto text-center">
 
         {/* Headline */}
