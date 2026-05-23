@@ -27,8 +27,14 @@ export default function Navbar() {
               <Link to="/dashboard" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 Dashboard
               </Link>
+              <Link to="/YourAnalysis" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
+                Your Analysis
+              </Link>
               <Link to="/planner" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 Your Planner
+              </Link>
+              <Link to="/NewAnalysis" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
+                New Analysis
               </Link>
             </div>
           </div>
