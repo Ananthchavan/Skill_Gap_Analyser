@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import WelcomeCard from '../components/WelcomeCard'
+import SkillsChart from '../components/SkillsChart'
 
 // Mock data
 const mockUser = {
@@ -22,6 +23,7 @@ export default function DashboardPage() {
         </h1>
 
         <WelcomeCard user={mockUser} />
+        <SkillsChart />
 
       </main>
 
