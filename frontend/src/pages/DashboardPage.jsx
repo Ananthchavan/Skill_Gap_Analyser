@@ -2,6 +2,9 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import WelcomeCard from '../components/WelcomeCard'
 import SkillsChart from '../components/SkillsChart'
+import MissingSkillsCard from '../components/MissingSkillsCard'
+import ActiveRoadmap from '../components/ActiveRoadmap'
+import QuizScores from '../components/QuizScores'
 
 // Mock data
 const mockUser = {
@@ -22,8 +25,24 @@ export default function DashboardPage() {
           Dashboard
         </h1>
 
+        {/* Welcome Card */}
         <WelcomeCard user={mockUser} />
+
+        {/* Skills Radar Chart */}
         <SkillsChart />
+
+        {/* Bottom Row: Missing Skills + Active Roadmap */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+          <div className="md:col-span-2">
+            <MissingSkillsCard />
+          </div>
+          <div className="md:col-span-3">
+            <ActiveRoadmap />
+          </div>
+        </div>
+
+        {/* Quiz Scores */}
+        <QuizScores />
 
       </main>
 
