@@ -18,9 +18,9 @@ export default function Navbar() {
 
             {/* Nav Links - hidden on mobile */}
             <div className="hidden md:flex items-center gap-6">
-              <a href="#hero-section" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
+              <Link to="/" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 Home
-              </a>
+              </Link>
               <a href="#how-it-works" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 About
               </a>
