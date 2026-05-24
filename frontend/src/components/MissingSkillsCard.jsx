@@ -1,24 +1,85 @@
-const missingSkills = [
-  { name: 'GraphQL', level: 'Critical', color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' },
-  { name: 'Docker',  level: 'High',     color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
-  { name: 'Testing', level: 'Med',      color: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' },
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Cell,
+  Tooltip,
+} from 'recharts'
+
+const defaultMissingSkills = [
+  { name: 'GraphQL', gap: 70, level: 'Critical', color: '#ef4444' },
+  { name: 'Docker',  gap: 60, level: 'High',     color: '#f59e0b' },
+  { name: 'Testing', gap: 50, level: 'Medium',   color: '#eab308' },
 ]
 
-export default function MissingSkillsCard() {
+export default function MissingSkillsCard({ skills = defaultMissingSkills }) {
   return (
-    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
-      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
-        Top Missing Skills (Gap)
+    <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-full">
+      <p className="text-base font-bold text-slate-800 dark:text-slate-100 mb-5">
+        Top Missing Skills
       </p>
-      <div className="flex flex-col gap-3">
-        {missingSkills.map((skill) => (
-          <div key={skill.name} className="flex items-center justify-between">
-            <span className="text-slate-700 dark:text-slate-300 text-sm">{skill.name}</span>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${skill.color}`}>
-              {skill.level}
-            </span>
-          </div>
-        ))}
+
+      <div className="flex flex-col gap-5">
+        {skills.map((skill) => {
+          const chartData = [{ name: skill.name, gap: skill.gap }]
+          return (
+            <div key={skill.name}>
+              {/* Label row */}
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  {skill.name}
+                </span>
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  style={{
+                    backgroundColor: skill.color + '20',
+                    color: skill.color,
+                  }}
+                >
+                  {skill.level} · {skill.gap}% gap
+                </span>
+              </div>
+
+              {/* Dynamic Recharts gap bar */}
+              <div className="h-3.5 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={chartData}
+                    margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+                    barSize={12}
+                  >
+                    <XAxis type="number" domain={[0, 100]} hide />
+                    <YAxis type="category" dataKey="name" hide />
+                    <Tooltip
+                      cursor={false}
+                      contentStyle={{
+                        backgroundColor: '#1e293b',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: '#f1f5f9',
+                        fontSize: '11px',
+                      }}
+                      formatter={(val) => [`Gap: ${val}%`, skill.name]}
+                    />
+                    <Bar
+                      dataKey="gap"
+                      radius={[6, 6, 6, 6]}
+                      background={{ fill: '#f1f5f9', radius: [6, 6, 6, 6] }}
+                      isAnimationActive={true}
+                      animationDuration={1000}
+                      animationEasing="ease-out"
+                    >
+                      <Cell fill={skill.color} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
