@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   RadarChart,
   PolarGrid,
@@ -99,21 +99,23 @@ function SparkRadar({ stroke, fill }) {
 // Props: title, matchPercentage, status, date, planLink
 // ─────────────────────────────────────────────
 export default function AnalysisCard({
+  id,
   title,
   matchPercentage,
   status = 'active',
   date,
-  planLink = '/dashboard',
   onDelete,
 }) {
+  const navigate = useNavigate()
   const cfg = STATUS_MAP[status] ?? STATUS_MAP.active
 
   return (
     <div
+      onClick={() => navigate(`/dashboard/${id}`)}
       className={`
         group relative bg-white dark:bg-slate-900
         border-2 ${cfg.borderClass}
-        rounded-2xl p-5 shadow-sm
+        rounded-2xl p-5 shadow-sm cursor-pointer
         hover:shadow-md hover:-translate-y-0.5
         transition-all duration-200
         flex flex-col gap-3 min-h-[190px]
@@ -131,7 +133,7 @@ export default function AnalysisCard({
           {/* Trash button — visible on card hover */}
           {onDelete && (
             <button
-              onClick={onDelete}
+              onClick={(e) => { e.stopPropagation(); onDelete() }}
               title="Delete analysis"
               className="
                 opacity-0 group-hover:opacity-100 transition-opacity duration-150
@@ -170,24 +172,14 @@ export default function AnalysisCard({
         </p>
       </div>
 
-      {/* ── Row 4: Date + Action button ── */}
+      {/* ── Row 4: Date + Status chip (no more Link, card itself navigates) ── */}
       <div className="flex items-center justify-between mt-auto">
         <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
           {date}
         </span>
-
-        {cfg.actionIsLink ? (
-          <Link
-            to={planLink}
-            className={`text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors ${cfg.actionClass}`}
-          >
-            {cfg.actionLabel}
-          </Link>
-        ) : (
-          <span className={`text-[10px] font-bold px-3 py-1.5 rounded-lg ${cfg.actionClass}`}>
-            {cfg.actionLabel}
-          </span>
-        )}
+        <span className={`text-[10px] font-bold px-3 py-1.5 rounded-lg ${cfg.actionClass}`}>
+          {cfg.actionLabel}
+        </span>
       </div>
     </div>
   )

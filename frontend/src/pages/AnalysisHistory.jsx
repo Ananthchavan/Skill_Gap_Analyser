@@ -2,61 +2,8 @@ import { useState } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import AnalysisCard from '../components/AnalysisCard'
+import { analyses } from '../data/analyses'
 
-// ─────────────────────────────────────────────
-// Data: array of analysis objects
-// Each object matches the AnalysisCard prop shape
-// ─────────────────────────────────────────────
-const analyses = [
-  {
-    id: 1,
-    title: 'Senior Frontend Engineer',
-    matchPercentage: 88,
-    status: 'active',
-    date: 'May 15, 2026',
-    planLink: '/dashboard',
-  },
-  {
-    id: 2,
-    title: 'Fullstack Developer',
-    matchPercentage: 76,
-    status: 'completed',
-    date: 'Mar 01, 2026',
-    planLink: '/dashboard',
-  },
-  {
-    id: 3,
-    title: 'Backend Specialist',
-    matchPercentage: 63,
-    status: 'completed',
-    date: 'Apr 10, 2026',
-    planLink: '/dashboard',
-  },
-  {
-    id: 4,
-    title: 'Data Engineer',
-    matchPercentage: 76,
-    status: 'outdated',
-    date: 'May 15, 2026',
-    planLink: '/dashboard',
-  },
-  {
-    id: 5,
-    title: 'UI/UX Designer Engineer',
-    matchPercentage: 83,
-    status: 'outdated',
-    date: 'May 28, 2026',
-    planLink: '/dashboard',
-  },
-  {
-    id: 6,
-    title: 'Target Role Developer',
-    matchPercentage: 76,
-    status: 'outdated',
-    date: 'Apr 10, 2026',
-    planLink: '/dashboard',
-  },
-]
 
 const FILTERS = ['All', 'Active', 'Completed', 'Outdated']
 
@@ -104,10 +51,9 @@ export default function AnalysisHistory() {
               onClick={() => setActiveFilter(f)}
               className={`
                 px-4 py-1.5 rounded-full text-xs font-bold border transition-all duration-150
-                ${
-                  activeFilter === f
-                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                    : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-gray-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'
+                ${activeFilter === f
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-gray-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'
                 }
               `}
             >
@@ -121,11 +67,11 @@ export default function AnalysisHistory() {
           {filtered.map((analysis) => (
             <AnalysisCard
               key={analysis.id}
+              id={analysis.id}
               title={analysis.title}
               matchPercentage={analysis.matchPercentage}
               status={analysis.status}
               date={analysis.date}
-              planLink={analysis.planLink}
               onDelete={() => handleDelete(analysis.id)}
             />
           ))}

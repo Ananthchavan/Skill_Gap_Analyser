@@ -8,7 +8,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard/:analysisId" element={<DashboardPage />} />
         <Route path="/YourAnalysis" element={<AnalysisHistory />} />
       </Routes>
     </BrowserRouter>

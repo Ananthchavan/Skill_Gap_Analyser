@@ -24,9 +24,7 @@ export default function Navbar() {
               <a href="#how-it-works" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 About
               </a>
-              <Link to="/dashboard" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
-                Dashboard
-              </Link>
+
               <Link to="/YourAnalysis" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 Your Analysis
               </Link>
@@ -91,9 +89,7 @@ export default function Navbar() {
             <a href="#how-it-works" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
               About
             </a>
-            <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
-              Dashboard
-            </Link>
+
             <Link to="/planner" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
               Your Planner
             </Link>
