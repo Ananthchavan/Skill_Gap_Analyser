@@ -61,16 +61,24 @@ const analyses = [
 const FILTERS = ['All', 'Active', 'Completed', 'Outdated']
 
 export default function AnalysisHistory() {
-  const [items, setItems] = useState(analyses)
+  // Read deleted IDs from localStorage on first render
+  const [deletedIds, setDeletedIds] = useState(
+    () => JSON.parse(localStorage.getItem('deletedAnalyses') || '[]')
+  )
   const [activeFilter, setActiveFilter] = useState('All')
 
-  const handleDelete = (id) => setItems((prev) => prev.filter((a) => a.id !== id))
+  const handleDelete = (id) => {
+    const updated = [...deletedIds, id]
+    setDeletedIds(updated)
+    localStorage.setItem('deletedAnalyses', JSON.stringify(updated))
+  }
 
-  // Filter the array based on the selected tab
+  // Filter out deleted items, then apply tab filter
+  const visible = analyses.filter((a) => !deletedIds.includes(a.id))
   const filtered =
     activeFilter === 'All'
-      ? items
-      : items.filter((a) => a.status === activeFilter.toLowerCase())
+      ? visible
+      : visible.filter((a) => a.status === activeFilter.toLowerCase())
 
   return (
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen flex flex-col">
