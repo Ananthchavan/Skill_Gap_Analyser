@@ -61,15 +61,16 @@ const analyses = [
 const FILTERS = ['All', 'Active', 'Completed', 'Outdated']
 
 export default function AnalysisHistory() {
+  const [items, setItems] = useState(analyses)
   const [activeFilter, setActiveFilter] = useState('All')
+
+  const handleDelete = (id) => setItems((prev) => prev.filter((a) => a.id !== id))
 
   // Filter the array based on the selected tab
   const filtered =
     activeFilter === 'All'
-      ? analyses
-      : analyses.filter(
-          (a) => a.status === activeFilter.toLowerCase()
-        )
+      ? items
+      : items.filter((a) => a.status === activeFilter.toLowerCase())
 
   return (
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen flex flex-col">
@@ -117,6 +118,7 @@ export default function AnalysisHistory() {
               status={analysis.status}
               date={analysis.date}
               planLink={analysis.planLink}
+              onDelete={() => handleDelete(analysis.id)}
             />
           ))}
         </div>

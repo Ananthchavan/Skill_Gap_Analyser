@@ -104,6 +104,7 @@ export default function AnalysisCard({
   status = 'active',
   date,
   planLink = '/dashboard',
+  onDelete,
 }) {
   const cfg = STATUS_MAP[status] ?? STATUS_MAP.active
 
@@ -118,7 +119,7 @@ export default function AnalysisCard({
         flex flex-col gap-3 min-h-[190px]
       `}
     >
-      {/* ── Row 1: Status badge + Spark Radar ── */}
+      {/* ── Row 1: Status badge + Spark Radar + Delete ── */}
       <div className="flex items-start justify-between">
         <span
           className={`text-[10px] font-extrabold tracking-widest px-2.5 py-1 rounded-md ${cfg.badgeClass}`}
@@ -126,8 +127,28 @@ export default function AnalysisCard({
           {cfg.label}
         </span>
 
-        <div className="shrink-0 -mt-1 -mr-1 opacity-90 group-hover:opacity-100 transition-opacity">
-          <SparkRadar stroke={cfg.radarStroke} fill={cfg.radarFill} />
+        <div className="flex items-start gap-1">
+          {/* Trash button — visible on card hover */}
+          {onDelete && (
+            <button
+              onClick={onDelete}
+              title="Delete analysis"
+              className="
+                opacity-0 group-hover:opacity-100 transition-opacity duration-150
+                p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50
+                dark:hover:text-red-400 dark:hover:bg-red-900/30
+              "
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3M4 7h16" />
+              </svg>
+            </button>
+          )}
+
+          <div className="shrink-0 -mt-1 -mr-1 opacity-90 group-hover:opacity-100 transition-opacity">
+            <SparkRadar stroke={cfg.radarStroke} fill={cfg.radarFill} />
+          </div>
         </div>
       </div>
 
