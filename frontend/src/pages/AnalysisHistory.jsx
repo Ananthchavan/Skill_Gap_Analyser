@@ -75,6 +75,31 @@ export default function AnalysisHistory() {
               onDelete={() => handleDelete(analysis.id)}
             />
           ))}
+
+          {/* Dotted border card to start new analysis */}
+          <a
+            href="/NewAnalysis"
+            className="
+              border-2 border-dashed border-slate-300 dark:border-slate-700
+              rounded-2xl p-5 flex flex-col items-center justify-center text-center
+              hover:border-indigo-500 dark:hover:border-indigo-400
+              hover:bg-slate-100/50 dark:hover:bg-slate-900/50
+              transition-all duration-200 cursor-pointer
+              min-h-[200px] gap-2 group
+            "
+          >
+            <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
+            <span className="text-[15px] font-bold text-slate-800 dark:text-slate-200 mt-2">
+              Start New Career Analysis
+            </span>
+            <span className="text-[12px] text-slate-400 dark:text-slate-500 font-medium">
+              Compare your skills against 500+ job roles
+            </span>
+          </a>
         </div>
 
         {/* ── Empty state ── */}
@@ -87,26 +112,6 @@ export default function AnalysisHistory() {
             <p className="text-sm font-semibold">No analyses found for "{activeFilter}"</p>
           </div>
         )}
-
-        {/* ── New analysis CTA ── */}
-        <div className="mt-10 flex justify-center">
-          <a
-            href="/NewAnalysis"
-            className="
-              inline-flex items-center gap-2
-              bg-indigo-600 hover:bg-indigo-700
-              text-white text-sm font-semibold
-              px-6 py-3 rounded-xl
-              shadow-md hover:shadow-lg
-              transition-all duration-200
-            "
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-            </svg>
-            Start New Analysis
-          </a>
-        </div>
 
       </main>
 
