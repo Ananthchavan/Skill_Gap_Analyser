@@ -15,18 +15,10 @@ import {
   Tooltip
 } from 'recharts'
 
-/* ── Fallback Mock Data for Skills ── */
-const defaultSkillData = [
-  { skill: 'React',      score: 85, label: 'Level',    gap: 15 },
-  { skill: 'Node.js',    score: 70, label: 'BarChart', gap: 30 },
-  { skill: 'GraphQL',    score: 30, label: 'BarChart', gap: 70 },
-  { skill: 'Docker',     score: 40, label: 'BarChart', gap: 60 },
-  { skill: 'Testing',    score: 50, label: 'BarChart', gap: 50 },
-  { skill: 'TypeScript', score: 65, label: 'BarChart', gap: 35 },
-]
+/* ── No fallback data here — all data comes from MockData.js ── */
 
 /* ── Radar Chart Subcomponent ── */
-function RadarWidget({ data = defaultSkillData }) {
+function RadarWidget({ data = [] }) {
   return (
     <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-full min-h-[420px]">
       <p className="text-base font-bold text-slate-800 dark:text-slate-100 mb-4">
@@ -58,7 +50,7 @@ function RadarWidget({ data = defaultSkillData }) {
             />
             <Radar
               name="Proficiency"
-              dataKey="score"
+              dataKey="value"
               stroke="#6366f1"
               fill="#6366f1"
               fillOpacity={0.25}
@@ -138,13 +130,14 @@ function OverallMatchWidget({ score = 76 }) {
 }
 
 /* ── Individual horizontal bar widget ── */
+/* Expects MockData skillsBreakdown shape: { name, proficiency, gap } */
 function SkillBarRow({ item }) {
-  const chartData = [{ name: item.skill, val: item.score }]
+  const chartData = [{ name: item.name, val: item.proficiency }]
   return (
     <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl p-3.5 shadow-sm">
       <div className="flex justify-between items-center mb-1.5">
-        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{item.skill}</span>
-        <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">{item.score}%</span>
+        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{item.name}</span>
+        <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">{item.proficiency}%</span>
       </div>
 
       {/* Dynamic Recharts Bar */}
@@ -168,7 +161,7 @@ function SkillBarRow({ item }) {
       </div>
 
       <div className="flex justify-between items-center mt-1.5 text-[9px] font-bold text-slate-400">
-        <span>{item.label}</span>
+        <span>Proficiency</span>
         <span>Gap: {item.gap}%</span>
       </div>
     </div>
@@ -176,7 +169,7 @@ function SkillBarRow({ item }) {
 }
 
 /* ── Gaps & Proficiency Grid Subcomponent ── */
-function ProficiencyWidget({ data = defaultSkillData }) {
+function ProficiencyWidget({ data = [] }) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-base font-bold text-slate-800 dark:text-slate-100">
@@ -184,7 +177,7 @@ function ProficiencyWidget({ data = defaultSkillData }) {
       </p>
       <div className="grid grid-cols-2 gap-4">
         {data.map((item) => (
-          <SkillBarRow key={item.skill} item={item} />
+          <SkillBarRow key={item.name} item={item} />
         ))}
       </div>
     </div>
@@ -192,7 +185,7 @@ function ProficiencyWidget({ data = defaultSkillData }) {
 }
 
 /* ── Main SkillsChart Selector ── */
-export default function SkillsChart({ type, data = defaultSkillData, overallScore = 76 }) {
+export default function SkillsChart({ type, data = [], overallScore = 76 }) {
   if (type === 'radar') {
     return <RadarWidget data={data} />
   }

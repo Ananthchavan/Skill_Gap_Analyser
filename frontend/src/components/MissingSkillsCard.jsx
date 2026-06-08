@@ -8,13 +8,15 @@ import {
   Tooltip,
 } from 'recharts'
 
-const defaultMissingSkills = [
-  { name: 'GraphQL', gap: 70, level: 'Critical', color: '#ef4444' },
-  { name: 'Docker',  gap: 60, level: 'High',     color: '#f59e0b' },
-  { name: 'Testing', gap: 50, level: 'Medium',   color: '#eab308' },
-]
+// Derive color from MockData's level string (no color field in MockData)
+const LEVEL_COLORS = {
+  Critical: '#ef4444',
+  High:     '#f59e0b',
+  Medium:   '#eab308',
+  Low:      '#22c55e',
+}
 
-export default function MissingSkillsCard({ skills = defaultMissingSkills }) {
+export default function MissingSkillsCard({ skills = [] }) {
   return (
     <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-full">
       <p className="text-base font-bold text-slate-800 dark:text-slate-100 mb-5">
@@ -23,7 +25,10 @@ export default function MissingSkillsCard({ skills = defaultMissingSkills }) {
 
       <div className="flex flex-col gap-5">
         {skills.map((skill) => {
-          const chartData = [{ name: skill.name, gap: skill.gap }]
+          // MockData uses gapPercentage; derive color from level
+          const gapValue = skill.gapPercentage ?? skill.gap ?? 0
+          const color = skill.color ?? LEVEL_COLORS[skill.level] ?? '#94a3b8'
+          const chartData = [{ name: skill.name, gap: gapValue }]
           return (
             <div key={skill.name}>
               {/* Label row */}
@@ -34,11 +39,11 @@ export default function MissingSkillsCard({ skills = defaultMissingSkills }) {
                 <span
                   className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                   style={{
-                    backgroundColor: skill.color + '20',
-                    color: skill.color,
+                    backgroundColor: color + '20',
+                    color: color,
                   }}
                 >
-                  {skill.level} · {skill.gap}% gap
+                  {skill.level} · {gapValue}% gap
                 </span>
               </div>
 
@@ -72,7 +77,7 @@ export default function MissingSkillsCard({ skills = defaultMissingSkills }) {
                       animationDuration={1000}
                       animationEasing="ease-out"
                     >
-                      <Cell fill={skill.color} />
+                      <Cell fill={color} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -84,3 +89,4 @@ export default function MissingSkillsCard({ skills = defaultMissingSkills }) {
     </div>
   )
 }
+
