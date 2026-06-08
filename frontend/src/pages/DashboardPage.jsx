@@ -66,7 +66,7 @@ export default function DashboardPage() {
             <MissingSkillsCard skills={analysis.missingSkills} />
           </div>
           <div className="lg:col-span-3">
-            <ActiveRoadmap />
+            <ActiveRoadmap analysisId={analysisId} />
           </div>
         </div>
 

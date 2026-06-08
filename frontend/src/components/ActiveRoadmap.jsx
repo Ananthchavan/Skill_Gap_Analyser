@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   ResponsiveContainer,
   BarChart,
@@ -15,7 +15,8 @@ const defaultRoadmap = {
   totalDays: 30,
 }
 
-export default function ActiveRoadmap({ roadmap = defaultRoadmap }) {
+export default function ActiveRoadmap({ roadmap = defaultRoadmap, analysisId }) {
+  const navigate = useNavigate()
   const { title, percent, currentDay, totalDays } = roadmap
 
   /* Recharts needs an array even for a single horizontal bar */
@@ -85,8 +86,8 @@ export default function ActiveRoadmap({ roadmap = defaultRoadmap }) {
       </div>
 
       {/* Go to Planner */}
-      <Link
-        onClick={(e) => { e.stopPropagation(); navigate(`/planner/${id}`) }}
+      <button
+        onClick={() => navigate(`/planner/${analysisId}`)}
         className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95
                    text-white text-sm font-semibold px-5 py-2.5 rounded-xl
                    transition-all duration-200 shadow-sm shadow-indigo-200 dark:shadow-indigo-900/30"
@@ -95,7 +96,8 @@ export default function ActiveRoadmap({ roadmap = defaultRoadmap }) {
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
         </svg>
-      </Link>
+      </button>
     </div>
   )
 }
+
