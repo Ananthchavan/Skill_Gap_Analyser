@@ -86,7 +86,7 @@ export default function ActiveRoadmap({ roadmap = defaultRoadmap }) {
 
       {/* Go to Planner */}
       <Link
-        to="/planner"
+        onClick={(e) => { e.stopPropagation(); navigate(`/planner/${id}`) }}
         className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95
                    text-white text-sm font-semibold px-5 py-2.5 rounded-xl
                    transition-all duration-200 shadow-sm shadow-indigo-200 dark:shadow-indigo-900/30"
