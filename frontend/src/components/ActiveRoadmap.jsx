@@ -47,12 +47,12 @@ export default function ActiveRoadmap({ analysisId }) {
             <XAxis type="number" domain={[0, 100]} hide />
             <YAxis type="category" dataKey="name" hide />
 
-            {/* Filled (done) portion */}
+            {/* Filled (done) portion — fully rounded when 100% */}
             <Bar
               dataKey="done"
               stackId="progress"
               fill="url(#progressGrad)"
-              radius={[8, 0, 0, 8]}
+              radius={percent >= 100 ? [8, 8, 8, 8] : [8, 0, 0, 8]}
               isAnimationActive={true}
               animationDuration={1200}
               animationEasing="ease-out"
@@ -65,16 +65,18 @@ export default function ActiveRoadmap({ analysisId }) {
               </defs>
             </Bar>
 
-            {/* Remaining (gap) portion */}
-            <Bar
-              dataKey="remaining"
-              stackId="progress"
-              fill="#f1f5f9"
-              radius={[0, 8, 8, 0]}
-              isAnimationActive={true}
-              animationDuration={1200}
-              animationEasing="ease-out"
-            />
+            {/* Remaining (gap) portion — only render when not fully complete */}
+            {percent < 100 && (
+              <Bar
+                dataKey="remaining"
+                stackId="progress"
+                fill="#f1f5f9"
+                radius={[0, 8, 8, 0]}
+                isAnimationActive={true}
+                animationDuration={1200}
+                animationEasing="ease-out"
+              />
+            )}
           </BarChart>
         </ResponsiveContainer>
       </div>
