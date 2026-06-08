@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import AnalysisCard from '../components/AnalysisCard'
-import { analyses } from '../data/analyses'
+import { mockAnalyses } from '../data/MockData'
 
 
 const FILTERS = ['All', 'Active', 'Completed', 'Outdated']
@@ -21,11 +21,11 @@ export default function AnalysisHistory() {
   }
 
   // Filter out deleted items, then apply tab filter
-  const visible = analyses.filter((a) => !deletedIds.includes(a.id))
+  const visible = mockAnalyses.filter((a) => !deletedIds.includes(a.id))
   const filtered =
     activeFilter === 'All'
       ? visible
-      : visible.filter((a) => a.status === activeFilter.toLowerCase())
+      : visible.filter((a) => a.status.toLowerCase() === activeFilter.toLowerCase())
 
   return (
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen flex flex-col">
@@ -68,10 +68,10 @@ export default function AnalysisHistory() {
             <AnalysisCard
               key={analysis.id}
               id={analysis.id}
-              title={analysis.title}
+              title={analysis.targetRole}
               matchPercentage={analysis.matchPercentage}
-              status={analysis.status}
-              date={analysis.date}
+              status={analysis.status.toLowerCase()}
+              date={analysis.dateGenerated}
               onDelete={() => handleDelete(analysis.id)}
             />
           ))}

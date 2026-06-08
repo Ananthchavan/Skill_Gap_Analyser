@@ -6,13 +6,13 @@ import SkillsChart from '../components/SkillsChart'
 import MissingSkillsCard from '../components/MissingSkillsCard'
 import ActiveRoadmap from '../components/ActiveRoadmap'
 import QuizScores from '../components/QuizScores'
-import { analyses } from '../data/analyses'
+import { mockAnalyses } from '../data/MockData'
 
 export default function DashboardPage() {
   const { analysisId } = useParams()
 
-  // Find the specific analysis by URL param
-  const analysis = analyses.find((a) => a.id === Number(analysisId))
+  // Find the specific analysis by URL param (IDs are strings like "analysis-1")
+  const analysis = mockAnalyses.find((a) => a.id === analysisId)
 
   // If ID doesn't match any record → redirect to history page
   if (!analysis) {
@@ -22,7 +22,7 @@ export default function DashboardPage() {
   // Build the user object that WelcomeCard expects
   const user = {
     name: 'Alex',
-    targetRole: analysis.title,
+    targetRole: analysis.targetRole,
     skillMatch: analysis.matchPercentage,
   }
 
@@ -49,13 +49,13 @@ export default function DashboardPage() {
           {/* Left Column */}
           <div className="lg:col-span-2 flex flex-col gap-6">
             <WelcomeCard user={user} />
-            <SkillsChart type="radar" data={analysis.skillData} />
+            <SkillsChart type="radar" data={analysis.radarData} />
           </div>
 
           {/* Right Column */}
           <div className="lg:col-span-1 flex flex-col gap-6">
             <SkillsChart type="overall" overallScore={analysis.matchPercentage} />
-            <SkillsChart type="proficiency" data={analysis.skillData} />
+            <SkillsChart type="proficiency" data={analysis.skillsBreakdown} />
           </div>
 
         </div>
@@ -81,3 +81,4 @@ export default function DashboardPage() {
     </div>
   )
 }
+
