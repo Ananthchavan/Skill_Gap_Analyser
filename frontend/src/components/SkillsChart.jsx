@@ -119,9 +119,6 @@ function OverallMatchWidget({ score = 76 }) {
           <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-1">
             Overall Skill Match
           </p>
-          <div className="inline-block bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-500 dark:text-slate-400 rounded-md px-2 py-0.5 mt-2">
-            Gap: {Math.max(0, 100 - score)}%
-          </div>
         </div>
 
       </div>
