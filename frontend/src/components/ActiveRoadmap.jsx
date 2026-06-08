@@ -6,18 +6,19 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { mockAnalyses } from '../data/MockData'
 
-/* Default mock data — swap with backend response via props */
-const defaultRoadmap = {
-  title: '30-Day Frontend Masterplan',
-  percent: 60,
-  currentDay: 18,
-  totalDays: 30,
-}
-
-export default function ActiveRoadmap({ roadmap = defaultRoadmap, analysisId }) {
+export default function ActiveRoadmap({ analysisId }) {
   const navigate = useNavigate()
-  const { title, percent, currentDay, totalDays } = roadmap
+
+  /* Look up the matching analysis from MockData */
+  const analysis = mockAnalyses.find((a) => a.id === analysisId)
+  const roadmapSummary = analysis?.roadmapSummary
+
+  const title      = roadmapSummary?.title          ?? 'No Active Roadmap'
+  const percent    = roadmapSummary?.percentComplete ?? 0
+  const currentDay = roadmapSummary?.currentDay      ?? 0
+  const totalDays  = 30
 
   /* Recharts needs an array even for a single horizontal bar */
   const chartData = [{ name: 'Progress', done: percent, remaining: 100 - percent }]
