@@ -5,7 +5,6 @@ import WelcomeCard from '../components/WelcomeCard'
 import SkillsChart from '../components/SkillsChart'
 import MissingSkillsCard from '../components/MissingSkillsCard'
 import ActiveRoadmap from '../components/ActiveRoadmap'
-import QuizScores from '../components/QuizScores'
 import { mockAnalyses } from '../data/MockData'
 
 export default function DashboardPage() {
@@ -68,11 +67,6 @@ export default function DashboardPage() {
           <div className="lg:col-span-3">
             <ActiveRoadmap analysisId={analysisId} />
           </div>
-        </div>
-
-        {/* Quiz Scores */}
-        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-          <QuizScores />
         </div>
 
       </main>

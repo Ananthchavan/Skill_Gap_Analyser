@@ -38,12 +38,6 @@ export const mockAnalyses = [
             currentDay: 18
         },
 
-        quizScores: [
-            { day: 5, topic: "React Hooks", skillImproved: "React", score: 95 },
-            { day: 12, topic: "Async JavaScript", skillImproved: "Node.js", score: 88 },
-            { day: 18, topic: "Docker Basics", skillImproved: "Docker", score: 80 }
-        ],
-
         plannerSteps: [
             { day: 1, topic: "Vite Configuration & Asset Optimization", completed: true, resource: "React Docs" },
             { day: 2, topic: "Advanced Tailwind Architecture", completed: true, resource: "Tailwind UI" },
@@ -83,11 +77,6 @@ export const mockAnalyses = [
             percentComplete: 100,
             currentDay: 30
         },
-
-        quizScores: [
-            { day: 10, topic: "CSS Grid Auto-Fit", skillImproved: "CSS", score: 100 },
-            { day: 25, topic: "Framer Variants", skillImproved: "Framer Motion", score: 92 }
-        ],
 
         plannerSteps: [
             { day: 1, topic: "Figma Variables setup", completed: true, resource: "Figma Learn" },
