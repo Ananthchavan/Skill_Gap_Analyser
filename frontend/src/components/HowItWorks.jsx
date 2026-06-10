@@ -200,7 +200,7 @@ const steps = [
     number: '03',
     title: 'Bridge the gap.',
     description:
-      'Get a highly structured, interactive 30-day curriculum. Take daily quizzes, track your momentum, and walk into your interview fully prepared.',
+      'Get a highly structured, interactive 30-day curriculum. Track your momentum and walk into your interview fully prepared.',
     Visual: Step3Visual,
   },
 ]

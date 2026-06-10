@@ -52,63 +52,6 @@ function TrackingVisual() {
 }
 
 /* ══════════════════════════════════════
-   Card 2 – AI-Powered Quizzes
-   Donut chart + question + radio options
-══════════════════════════════════════ */
-function QuizVisual() {
-  /* SVG donut for 75% */
-  const r = 36
-  const circ = 2 * Math.PI * r
-  const offset = circ * (1 - 0.75)
-
-  return (
-    <div className="flex flex-col items-center gap-3 py-1">
-      {/* Donut ring */}
-      <div className="relative w-24 h-24 flex items-center justify-center">
-        <svg className="w-24 h-24 -rotate-90" viewBox="0 0 96 96">
-          <circle cx="48" cy="48" r={r} fill="none" stroke="#e2e8f0" strokeWidth="10" />
-          <circle
-            cx="48" cy="48" r={r}
-            fill="none"
-            stroke="url(#quizGrad)"
-            strokeWidth="10"
-            strokeLinecap="round"
-            strokeDasharray={circ}
-            strokeDashoffset={offset}
-          />
-          <defs>
-            <linearGradient id="quizGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#6366f1" />
-              <stop offset="100%" stopColor="#a855f7" />
-            </linearGradient>
-          </defs>
-        </svg>
-        <div className="absolute text-center">
-          <p className="text-xl font-extrabold text-slate-900 leading-none">75%</p>
-          <p className="text-[9px] text-slate-400 font-medium">Quiz</p>
-        </div>
-      </div>
-
-      {/* Question */}
-      <p className="text-xs text-slate-600 font-medium text-center">What is the time complexity...</p>
-
-      {/* Radio options */}
-      <div className="flex flex-col gap-1.5 w-full px-4">
-        {['Option: A', 'Option: B', 'Option: C'].map((opt, i) => (
-          <div key={opt} className="flex items-center gap-2">
-            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0
-              ${i === 0 ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300 bg-white'}`}>
-              {i === 0 && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-            </div>
-            <span className="text-xs text-slate-600">{opt}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ══════════════════════════════════════
    Card 3 – Analytics Dashboard
    Line chart + donut ring 82%
 ══════════════════════════════════════ */
@@ -200,12 +143,6 @@ const features = [
     Visual: TrackingVisual,
   },
   {
-    title: 'AI-Powered Quizzes',
-    description:
-      'Prove your knowledge. Every daily task comes with an AI-generated micro-quiz to ensure you actually understand the concepts.',
-    Visual: QuizVisual,
-  },
-  {
     title: 'Analytics Dashboard',
     description:
       'Visualize your interview readiness with completion rings and accuracy trend lines.',
@@ -232,7 +169,7 @@ export default function WhyUs() {
         </div>
 
         {/* ── Cards ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {features.map(({ title, description, Visual }) => (
             <div
               key={title}
