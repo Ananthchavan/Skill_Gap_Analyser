@@ -55,7 +55,7 @@ app.get('/api/health', (req, res) => {
 
 // <=================== AUTH ROUTES =================>
 
-// Triggers GitHub login
+// Triggers GitHub login — account picker is forced via authorizationParams override in passport.js
 app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
 
 // Redirect after successful login
