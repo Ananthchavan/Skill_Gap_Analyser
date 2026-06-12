@@ -151,15 +151,12 @@ export default function NewAnalysis() {
     if (resumeFile) fd.append('resume', resumeFile)
 
     try {
-      /* Replace with your real API endpoint */
       const res = await fetch('/api/analysis/new', { method: 'POST', body: fd })
       if (!res.ok) throw new Error('Server error')
       const data = await res.json()
       navigate(`/dashboard/${data.analysisId}`)
-    } catch {
-      /* For demo: simulate a response */
-      await new Promise((r) => setTimeout(r, 1800))
-      navigate('/dashboard/demo-123')
+    } catch (err) {
+      setErrors({ form: 'Something went wrong. Please try again once the backend is connected.' })
     } finally {
       setIsSubmitting(false)
     }
@@ -488,6 +485,13 @@ export default function NewAnalysis() {
           </div>
 
           {/* ═══════════════ FOOTER / SUBMIT ═══════════════ */}
+          {errors.form && (
+            <div className="px-8 pb-4">
+              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-4 py-3">
+                {errors.form}
+              </p>
+            </div>
+          )}
           <div className="px-8 py-6 bg-gray-50 dark:bg-slate-800/50 border-t border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed max-w-sm">
               Fields marked <span className="text-indigo-500">*</span> are required. Your data is

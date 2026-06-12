@@ -1,8 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './pages/landingpage.jsx'
-import DashboardPage from './pages/DashboardPage.jsx'
-import AnalysisHistory from './pages/AnalysisHistory.jsx'
-import Planner from './pages/Planner.jsx'
 import NewAnalysis from './pages/NewAnalysis.jsx'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
@@ -17,31 +14,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* Protected routes — requires GitHub session */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Navigate to="/YourAnalysis" replace />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard/:analysisId"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/YourAnalysis"
-          element={
-            <ProtectedRoute>
-              <AnalysisHistory />
-            </ProtectedRoute>
-          }
-        />
+        {/* Protected routes */}
         <Route
           path="/NewAnalysis"
           element={
@@ -50,14 +23,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/planner/:id"
-          element={
-            <ProtectedRoute>
-              <Planner />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )
