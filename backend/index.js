@@ -14,7 +14,7 @@ import multer from 'multer';
 import session from 'express-session';
 import { passport, configurePassport } from './passport.js';
 
-// Configure passport AFTER dotenv has loaded env vars
+//configure passport after dotenv has loaded env
 configurePassport();
 
 const app = express();
@@ -46,8 +46,8 @@ const upload = multer({
 });
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('✅ Connected to MongoDB'))
-    .catch((err) => console.error('❌ MongoDB connection error:', err));
+    .then(() => console.log(' Connected to MongoDB'))
+    .catch((err) => console.error(' MongoDB connection error:', err));
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'Skill-Gap Analyzer backend is running.' });
@@ -86,5 +86,5 @@ app.get('/api/logout', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Server listening on http://localhost:${PORT}`);
+    console.log(` Server listening on http://localhost:${PORT}`);
 });
