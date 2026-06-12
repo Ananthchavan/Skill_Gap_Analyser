@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Sparkles,
@@ -80,6 +80,16 @@ export default function NewAnalysis() {
   const [errors, setErrors] = useState({})
 
   const fileInputRef = useRef(null)
+
+  /* ── Pre-fill GitHub URL from logged-in user ── */
+  useEffect(() => {
+    fetch('http://localhost:8080/api/current_user', { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((user) => {
+        if (user?.profileUrl) setGithubUrl(user.profileUrl)
+      })
+      .catch(() => {})
+  }, [])
 
   /* ── drag & drop handlers ── */
   const handleDragOver = useCallback((e) => {
