@@ -2,8 +2,6 @@ import passport from 'passport';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import User from './models/User.js';
 
-// Lazy-initialize the GitHub strategy so env vars are available at call time
-// (ESM hoisting means module-level code runs before dotenv in index.js)
 function configurePassport() {
     passport.use(
         new GitHubStrategy({
