@@ -39,7 +39,7 @@ function Slider({ className, defaultValue, value, min = 0, max = 100, ...props }
         <SliderPrimitive.Thumb
           data-slot="slider-thumb"
           key={index}
-          className="border-primary/50 bg-background focus-visible:ring-ring/50 block size-4 shrink-0 rounded-full border shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-3 disabled:pointer-events-none"
+          className="border-primary/50 bg-indigo-600 dark:bg-indigo-500 focus-visible:ring-ring/50 block size-4 shrink-0 rounded-full border shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-3 disabled:pointer-events-none"
         />
       ))}
     </SliderPrimitive.Root>
