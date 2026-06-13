@@ -27,6 +27,15 @@ export default function Navbar() {
     }, 50)
   }
 
+  const handleWhyClick = (e) => {
+    e.preventDefault()
+    setMenuOpen(false)
+    navigate('/')
+    setTimeout(() => {
+      document.getElementById('why-us')?.scrollIntoView({ behavior: 'smooth' })
+    }, 50)
+  }
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e) {
@@ -45,9 +54,9 @@ export default function Navbar() {
 
           {/* Left Side */}
           <div className="flex items-center gap-8">
-            <Link to="/" className="text-xl font-bold text-indigo-600 tracking-tight">
+            <a href="/" onClick={handleHomeClick} className="text-xl font-bold text-indigo-600 tracking-tight">
               SGA.ai
-            </Link>
+            </a>
 
             {/* Nav Links - hidden on mobile */}
             <div className="hidden md:flex items-center gap-6">
@@ -56,6 +65,9 @@ export default function Navbar() {
               </a>
               <a href="/#how-it-works" onClick={handleAboutClick} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 About
+              </a>
+              <a href="/#why-us" onClick={handleWhyClick} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
+                Why SGA.ai?
               </a>
               {user && (
                 <>
@@ -186,6 +198,9 @@ export default function Navbar() {
             </a>
             <a href="/#how-it-works" onClick={handleAboutClick} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
               About
+            </a>
+            <a href="/#why-us" onClick={handleWhyClick} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
+              Why SGA.ai?
             </a>
 
             {user && (
