@@ -75,6 +75,7 @@ export default function NewAnalysis() {
   const [resumeFile, setResumeFile] = useState(null)
   const [jobDescription, setJobDescription] = useState('')
   const [studyHours, setStudyHours] = useState([10])
+  const [weeksDuration, setWeeksDuration] = useState('')
   const [isDragging, setIsDragging] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
@@ -158,6 +159,7 @@ export default function NewAnalysis() {
     fd.append('githubUrl', githubUrl)
     fd.append('jobDescription', jobDescription)
     fd.append('studyHours', studyHours[0])
+    fd.append('weeksDuration', weeksDuration)
     if (resumeFile) fd.append('resume', resumeFile)
 
     try {
@@ -441,6 +443,120 @@ export default function NewAnalysis() {
           <div className="px-8 py-6">
             <SectionHeader icon={Clock} label="Constraints" step="4" />
 
+            {/* ── Study Timeline ── */}
+            <div className="mb-8">
+              <FieldLabel htmlFor="weeksDuration">
+                Study Timeline
+              </FieldLabel>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 -mt-0.5">
+                Choose a duration that matches your current skill gap and urgency.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" id="weeksDuration">
+                {[
+                  {
+                    weeks: 2,
+                    label: '2 Weeks',
+                    badge: 'Crash Course',
+                    color: 'amber',
+                    description:
+                      'Already have ~80% of the skills? Use this rapid sprint to polish up for an upcoming interview or immediate project.',
+                  },
+                  {
+                    weeks: 4,
+                    label: '4 Weeks',
+                    badge: 'Standard · 1 Month',
+                    color: 'indigo',
+                    description:
+                      'The baseline plan. Ideal for learning one or two missing core technologies (e.g. Express + MongoDB) from scratch.',
+                  },
+                  {
+                    weeks: 8,
+                    label: '8 Weeks',
+                    badge: 'Deep Dive · 2 Months',
+                    color: 'violet',
+                    description:
+                      'Best for slight career pivots (e.g. Frontend → Full-Stack) with time to build a portfolio project alongside learning.',
+                  },
+                  {
+                    weeks: 12,
+                    label: '12 Weeks',
+                    badge: 'Comprehensive · 3 Months',
+                    color: 'rose',
+                    description:
+                      'Mimics a standard bootcamp timeline. For large skill gaps — Junior → Senior or complete beginner → Junior.',
+                  },
+                ].map(({ weeks, label, badge, color, description }) => {
+                  const isSelected = weeksDuration === String(weeks)
+                  const colorMap = {
+                    amber: {
+                      border: isSelected ? 'border-amber-500' : 'border-gray-200 dark:border-slate-700',
+                      bg: isSelected ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-white dark:bg-slate-800/60',
+                      badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+                      ring: 'focus-visible:ring-amber-400',
+                      dot: isSelected ? 'bg-amber-500' : 'bg-gray-300 dark:bg-slate-600',
+                      weeks: isSelected ? 'text-amber-600 dark:text-amber-400' : 'text-slate-800 dark:text-slate-100',
+                    },
+                    indigo: {
+                      border: isSelected ? 'border-indigo-500' : 'border-gray-200 dark:border-slate-700',
+                      bg: isSelected ? 'bg-indigo-50 dark:bg-indigo-900/20' : 'bg-white dark:bg-slate-800/60',
+                      badge: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300',
+                      ring: 'focus-visible:ring-indigo-400',
+                      dot: isSelected ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-slate-600',
+                      weeks: isSelected ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-100',
+                    },
+                    violet: {
+                      border: isSelected ? 'border-violet-500' : 'border-gray-200 dark:border-slate-700',
+                      bg: isSelected ? 'bg-violet-50 dark:bg-violet-900/20' : 'bg-white dark:bg-slate-800/60',
+                      badge: 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300',
+                      ring: 'focus-visible:ring-violet-400',
+                      dot: isSelected ? 'bg-violet-500' : 'bg-gray-300 dark:bg-slate-600',
+                      weeks: isSelected ? 'text-violet-600 dark:text-violet-400' : 'text-slate-800 dark:text-slate-100',
+                    },
+                    rose: {
+                      border: isSelected ? 'border-rose-500' : 'border-gray-200 dark:border-slate-700',
+                      bg: isSelected ? 'bg-rose-50 dark:bg-rose-900/20' : 'bg-white dark:bg-slate-800/60',
+                      badge: 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300',
+                      ring: 'focus-visible:ring-rose-400',
+                      dot: isSelected ? 'bg-rose-500' : 'bg-gray-300 dark:bg-slate-600',
+                      weeks: isSelected ? 'text-rose-600 dark:text-rose-400' : 'text-slate-800 dark:text-slate-100',
+                    },
+                  }
+                  const c = colorMap[color]
+                  return (
+                    <button
+                      key={weeks}
+                      type="button"
+                      onClick={() => setWeeksDuration(String(weeks))}
+                      aria-pressed={isSelected}
+                      className={`
+                        relative text-left rounded-xl border-2 p-4 transition-all duration-200
+                        focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+                        ${c.border} ${c.bg} ${c.ring}
+                        hover:shadow-md active:scale-[0.99]
+                      `}
+                    >
+                      {/* selection dot */}
+                      <span
+                        className={`absolute top-3.5 right-3.5 w-2.5 h-2.5 rounded-full transition-colors ${c.dot}`}
+                      />
+                      <span className={`text-lg font-bold tracking-tight ${c.weeks}`}>
+                        {label}
+                      </span>
+                      <span
+                        className={`mt-1 inline-block text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full ${c.badge}`}
+                      >
+                        {badge}
+                      </span>
+                      <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                        {description}
+                      </p>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* ── Hours per week slider ── */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <FieldLabel htmlFor="studyHours">
@@ -473,7 +589,7 @@ export default function NewAnalysis() {
                 </div>
               </div>
 
-              {/* Tick labels */}
+              {/* Quick-pick buttons */}
               <div className="mt-4 flex gap-2 flex-wrap">
                 {[5, 10, 15, 20, 25, 30, 35, 40].map((h) => (
                   <button
