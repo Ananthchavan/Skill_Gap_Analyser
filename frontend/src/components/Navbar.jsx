@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
 import { useAuth } from '../hooks/useAuth'
 
@@ -8,6 +8,24 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
   const { user, loading, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleHomeClick = (e) => {
+    e.preventDefault()
+    setMenuOpen(false)
+    navigate('/')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleAboutClick = (e) => {
+    e.preventDefault()
+    setMenuOpen(false)
+    navigate('/')
+    // Wait for navigation to complete before scrolling
+    setTimeout(() => {
+      document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })
+    }, 50)
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -33,10 +51,10 @@ export default function Navbar() {
 
             {/* Nav Links - hidden on mobile */}
             <div className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
+              <a href="/" onClick={handleHomeClick} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 Home
-              </Link>
-              <a href="#how-it-works" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
+              </a>
+              <a href="/#how-it-works" onClick={handleAboutClick} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                 About
               </a>
               {user && (
@@ -163,10 +181,10 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 px-4 pb-4">
           <div className="flex flex-col gap-1 pt-3">
-            <Link to="/" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
+            <a href="/" onClick={handleHomeClick} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
               Home
-            </Link>
-            <a href="#how-it-works" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
+            </a>
+            <a href="/#how-it-works" onClick={handleAboutClick} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
               About
             </a>
 
