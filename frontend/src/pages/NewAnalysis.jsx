@@ -12,6 +12,8 @@ import {
   Loader2,
   Target,
   BookOpen,
+  CheckCircle2,
+  ArrowRight,
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import {
@@ -79,6 +81,7 @@ export default function NewAnalysis() {
   const [isDragging, setIsDragging] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
+  const [successData, setSuccessData] = useState(null) // { analysisId }
 
   const fileInputRef = useRef(null)
 
@@ -89,7 +92,7 @@ export default function NewAnalysis() {
       .then((user) => {
         if (user?.profileUrl) setGithubUrl(user.profileUrl)
       })
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   /* ── drag & drop handlers ── */
@@ -163,10 +166,16 @@ export default function NewAnalysis() {
     if (resumeFile) fd.append('resume', resumeFile)
 
     try {
-      const res = await fetch('/api/analysis/new', { method: 'POST', body: fd })
+      const res = await fetch('http://localhost:8080/api/analysis/new', {
+        method: 'POST',
+        body: fd,
+        credentials: 'include'
+      })
       if (!res.ok) throw new Error('Server error')
       const data = await res.json()
-      navigate(`/dashboard/${data.analysisId}`)
+      setSuccessData({ analysisId: data.analysisId })
+      // auto-navigate after 2.5 s
+      setTimeout(() => navigate(`/dashboard/${data.analysisId}`), 2500)
     } catch (err) {
       setErrors({ form: 'Something went wrong. Please try again once the backend is connected.' })
     } finally {
@@ -175,6 +184,89 @@ export default function NewAnalysis() {
   }
 
   return (
+    <>
+    {/* ── Success Modal ── */}
+    {successData && (
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="success-title"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      >
+        {/* backdrop */}
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+        {/* card */}
+        <div
+          className="
+            relative z-10 w-full max-w-sm rounded-2xl
+            bg-white dark:bg-slate-900
+            border border-gray-100 dark:border-slate-700
+            shadow-2xl shadow-indigo-500/10
+            p-8 flex flex-col items-center text-center
+            animate-[fadeSlideUp_0.35s_ease-out]
+          "
+          style={{
+            animation: 'fadeSlideUp 0.35s cubic-bezier(0.16,1,0.3,1) both',
+          }}
+        >
+          {/* animated check ring */}
+          <div className="relative mb-5">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-400/30">
+              <CheckCircle2 className="w-10 h-10 text-white" strokeWidth={2} />
+            </div>
+            {/* pulse ring */}
+            <span className="absolute inset-0 rounded-full bg-indigo-400/20 animate-ping" style={{ animationDuration: '1.4s' }} />
+          </div>
+
+          <h2 id="success-title" className="text-xl font-bold text-slate-900 dark:text-white mb-1">
+            Analysis Submitted!
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-1">
+            Your roadmap is being generated.
+          </p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mb-6">
+            Redirecting you to the dashboard…
+          </p>
+
+          {/* progress bar */}
+          <div className="w-full h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden mb-6">
+            <div
+              className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full"
+              style={{ animation: 'progressBar 2.5s linear both' }}
+            />
+          </div>
+
+          <button
+            id="go-to-dashboard-btn"
+            onClick={() => navigate(`/dashboard/${successData.analysisId}`)}
+            className="
+              inline-flex items-center gap-2 px-6 py-2.5
+              bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600
+              text-white text-sm font-semibold rounded-xl
+              shadow-md shadow-indigo-400/20
+              transition-all duration-200 active:scale-95
+              focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2
+            "
+          >
+            Go to Dashboard
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* keyframe styles injected inline */}
+        <style>{`
+          @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to   { opacity: 1; transform: translateY(0)    scale(1);    }
+          }
+          @keyframes progressBar {
+            from { width: 0%; }
+            to   { width: 100%; }
+          }
+        `}</style>
+      </div>
+    )}
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors">
       <Navbar />
 
@@ -415,11 +507,10 @@ export default function NewAnalysis() {
                 }}
                 rows={8}
                 placeholder="Paste the full job description here — requirements, responsibilities, tech stack, etc."
-                className={`${inputClass} resize-none leading-relaxed ${
-                  errors.jobDescription
-                    ? 'border-red-400 focus:border-red-400 focus:ring-red-300/40'
-                    : ''
-                }`}
+                className={`${inputClass} resize-none leading-relaxed ${errors.jobDescription
+                  ? 'border-red-400 focus:border-red-400 focus:ring-red-300/40'
+                  : ''
+                  }`}
                 aria-describedby={errors.jobDescription ? 'jd-error' : undefined}
               />
               <div className="flex items-center justify-between mt-1.5">
@@ -656,6 +747,7 @@ export default function NewAnalysis() {
         </div>
       </form>
     </div>
+  </>
   )
 }
 
