@@ -13,6 +13,10 @@ import mongoose from 'mongoose';
 import multer from 'multer';
 import session from 'express-session';
 import { passport, configurePassport } from './passport.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
+import Analysis from './models/analysis.js';
 
 //configure passport after dotenv has loaded env
 configurePassport();
@@ -39,10 +43,18 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// intercepts the pdf into memory buffer
 const storage = multer.memoryStorage();
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'application/pdf') {
+            cb(null, true);
+        } else {
+            cb(new Error('Only PDF files are allowed.'), false);
+        }
+    }
 });
 
 mongoose.connect(process.env.MONGO_URI)
@@ -83,6 +95,53 @@ app.get('/api/logout', (req, res) => {
         }
         res.redirect(process.env.CLIENT_URL);
     });
+});
+
+// <===================== ANALYSIS ROUTES ======================>
+
+app.post('/api/analysis/new', upload.single('resume'), async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ error: 'You must be logged in.' });
+        }
+
+        const {
+            targetRole,
+            experienceLevel,
+            githubUrl,
+            jobDescription,
+            studyHours,
+            weeksDuration
+        } = req.body;
+
+        if (!req.file) {
+            return res.status(400).json({ error: 'Resume pdf is required' });
+        }
+
+        const pdfData = await pdfParse(req.file.buffer);
+        const ResumeText = pdfData.text;
+
+        const newAnalysis = await Analysis.create({
+            user: req.user._id,
+            githubUrl: githubUrl,
+            targetRole: targetRole,
+            experienceLevel: experienceLevel,
+            jobDescription: jobDescription,
+            studyHours: studyHours,
+            weeksDuration: weeksDuration,
+            resumeText: ResumeText,
+            status: 'pending',
+        });
+
+        res.status(201).json({
+            message: 'Analysis created successfully',
+            analysisId: newAnalysis._id,
+        });
+
+    } catch (error) {
+        console.error('Error processing analysis:', error);
+        res.status(500).json({ error: 'An error occurred while saving the analysis.' });
+    }
 });
 
 app.listen(PORT, () => {
