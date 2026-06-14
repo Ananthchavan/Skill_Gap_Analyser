@@ -17,6 +17,7 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse');
 import Analysis from './models/analysis.js';
+import { processAnalysisInBackground } from './services/analysisProcessor.js';
 
 //configure passport after dotenv has loaded env
 configurePassport();
@@ -136,6 +137,10 @@ app.post('/api/analysis/new', upload.single('resume'), async (req, res) => {
         res.status(201).json({
             message: 'Analysis created successfully',
             analysisId: newAnalysis._id,
+        });
+
+        processAnalysisInBackground(newAnalysis._id).catch(err => {
+            console.error('Unhandled error in background process:', err);
         });
 
     } catch (error) {
