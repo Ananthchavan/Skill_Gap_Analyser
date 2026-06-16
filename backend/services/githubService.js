@@ -86,7 +86,7 @@ export async function fetchAndFilterRepos(githubUrl) {
                     //ignore
                 }
 
-                //dependency manifest based on language
+                //Storing dependency based on language
                 const manifestPath = MANIFEST_FILES[baseData.language];
                 if (manifestPath) {
                     try {
