@@ -36,7 +36,7 @@ function configurePassport() {
     );
 
     // Override authorization params to use prompt=select_account 
-    githubStrategy.authorizationParams = function (options) {
+    githubStrategy.authorizationParams = function () {
         return { prompt: 'select_account' };
     };
 
