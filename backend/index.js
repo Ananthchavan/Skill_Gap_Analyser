@@ -100,6 +100,7 @@ app.get('/api/logout', (req, res) => {
 
 // <===================== ANALYSIS ROUTES ======================>
 
+//New Analysis Route
 app.post('/api/analysis/new', upload.single('resume'), async (req, res) => {
     try {
         if (!req.user) {
