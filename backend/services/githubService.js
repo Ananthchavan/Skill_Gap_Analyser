@@ -64,19 +64,25 @@ export async function fetchAndFilterRepos(githubUrl) {
 
         const poolForRanking = candidates.length > 0 ? candidates : baseRepos;
 
+        // rank all valid repos descending order by score
         const ranked = [...poolForRanking]
-            .sort((a, b) => scoreRepo(b) - scoreRepo(a))
-            .slice(0, MAX_DEEP_DIVES);
+            .sort((a, b) => scoreRepo(b) - scoreRepo(a));
 
-        const deepDiveNames = new Set(ranked.map((r) => r.name));
+        // create fast-lookup sets for our tier system
+        const tier1Names = new Set(ranked.slice(0, TIER_1_LIMIT).map((r) => r.name));
+        const tier2Names = new Set(ranked.slice(TIER_1_LIMIT, TIER_2_LIMIT).map((r) => r.name));
 
         const processedRepos = await Promise.all(
             baseRepos.map(async (baseData) => {
-                if (!deepDiveNames.has(baseData.name)) return baseData;
+                const isTier1 = tier1Names.has(baseData.name);
+                const isTier2 = tier2Names.has(baseData.name);
+
+                // if not tier1 or tier2, its tier3(No deep dive).
+                if (!isTier1 && !isTier2) return baseData;
 
                 baseData.isMajor = true;
 
-                // languages breakdown
+                // tier1 and tier2 data(Languages & Dependencies)
                 try {
                     const { data: languages } = await octokit.rest.repos.listLanguages({
                         owner: username,
@@ -87,7 +93,6 @@ export async function fetchAndFilterRepos(githubUrl) {
                     //ignore
                 }
 
-                //Storing dependency based on language
                 const manifestPath = MANIFEST_FILES[baseData.language];
                 if (manifestPath) {
                     try {
@@ -113,21 +118,23 @@ export async function fetchAndFilterRepos(githubUrl) {
                     }
                 }
 
-                // readme
-                try {
-                    const { data: readmeData } = await octokit.rest.repos.getReadme({
-                        owner: username,
-                        repo: baseData.name,
-                    });
-                    if (readmeData?.content) {
-                        const decoded = Buffer.from(readmeData.content, 'base64').toString('utf-8');
-                        baseData.readme =
-                            decoded.length > README_LIMIT
-                                ? decoded.substring(0, README_LIMIT) + '...'
-                                : decoded;
+                // tier1 exclusive Data (The full readme)
+                if (isTier1) {
+                    try {
+                        const { data: readmeData } = await octokit.rest.repos.getReadme({
+                            owner: username,
+                            repo: baseData.name,
+                        });
+                        if (readmeData?.content) {
+                            const decoded = Buffer.from(readmeData.content, 'base64').toString('utf-8');
+                            baseData.readme =
+                                decoded.length > README_LIMIT
+                                    ? decoded.substring(0, README_LIMIT) + '...'
+                                    : decoded;
+                        }
+                    } catch {
+                        // no readme skip
                     }
-                } catch {
-                    //no readme skip
                 }
 
                 return baseData;
