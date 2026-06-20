@@ -11,8 +11,9 @@ const MANIFEST_FILES = {
     Java: 'pom.xml',
 };
 
-const MAX_DEEP_DIVES = 7;
-const README_LIMIT = 800;
+const TIER_1_LIMIT = 3;  //top 3 repos get dependencies and 13k readme
+const TIER_2_LIMIT = 7;  //top 4-7 repos get dependencies (no readme)
+const README_LIMIT = 13000; //13,000 character circuit breaker
 
 const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30;
 
@@ -23,7 +24,7 @@ function monthsAgo(dateStr) {
 function scoreRepo(repo) {
     const recencyBonus =
         monthsAgo(repo.pushed_at) < 12 ? 4 : monthsAgo(repo.pushed_at) < 24 ? 2 : 0;
-    const sizeBonus = repo.size > 500 ? 3 : repo.size > 50 ? 1 : 0;
+    const sizeBonus = repo.size > 5000 ? 3 : repo.size > 500 ? 1 : 0; // Adjusted size thresholds to be realistic
 
     return repo.stars * 2 + repo.forks * 3 + sizeBonus + recencyBonus;
 }
