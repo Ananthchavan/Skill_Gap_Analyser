@@ -11,7 +11,7 @@ const MANIFEST_FILES = {
     Java: 'pom.xml',
 };
 
-const MAX_DEEP_DIVES = 12;
+const MAX_DEEP_DIVES = 7;
 const README_LIMIT = 800;
 
 const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30;
