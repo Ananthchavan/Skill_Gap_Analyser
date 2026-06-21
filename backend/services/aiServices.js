@@ -2,7 +2,7 @@ import { generateText, Output } from 'ai';
 import { google } from '@ai-sdk/google';
 import { aiAnalysisSchema } from '../schemas/aiSchemas.js';
 
-export async function generateExecutiveAnalysis(analysisData) {
+export async function generateAnalysis(analysisData) {
     try {
         const { output: aiAnalysisResult } = await generateText({
             model: google('gemini-2.5-flash'),
