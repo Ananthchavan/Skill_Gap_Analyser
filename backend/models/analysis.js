@@ -48,6 +48,10 @@ const analysisSchema = new mongoose.Schema({
         enum: ['pending', 'processing', 'completed', 'failed'],
         default: 'pending',
     },
+    aiAnalysis: {
+        type: mongoose.Schema.Types.Mixed,
+        default: null,
+    },
 }, { timestamps: true });
 
 const Analysis = mongoose.model('Analysis', analysisSchema);
