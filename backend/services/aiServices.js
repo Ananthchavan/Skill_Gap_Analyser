@@ -14,7 +14,9 @@ export async function generateAnalysis(analysisData) {
             system: `You are a brutally honest Senior Engineering Manager conducting a technical skill-gap analysis. 
             Your goal is to evaluate the user's current skills against their target role. 
             Do not be overly polite or give artificial high scores. If they lack critical skills, state it clearly.
-            Analyze the provided GitHub repository data, resume text, and job description to determine their true proficiency levels.`,
+            Analyze the provided GitHub repository data, resume text, and job description to determine their true proficiency levels.
+            
+            IMPORTANT: For the 'criticalMissingSkills' array, you must determine the required 'targetLevel' (0-100) based on the job description. Because these skills are missing, you MUST hardcode the user's 'currentLevel' to 0 for every item in this array.`,
             prompt: `
                 Target Role: ${analysisData.targetRole}
                 Expected Experience Level: ${analysisData.experienceLevel}

@@ -11,7 +11,9 @@ export const aiAnalysisSchema = z.object({
     criticalMissingSkills: z.array(z.object({
         skillName: z.string(),
         importance: z.enum(['High', 'Medium', 'Low']),
-        reason: z.string().describe("One brief sentence explaining why this is critical for the target role.")
+        reason: z.string().describe("One brief sentence explaining why this is critical for the target role."),
+        currentLevel: z.number().describe("Always set this to 0 since the skill is completely missing."),
+        targetLevel: z.number().min(0).max(100).describe("The required proficiency (0-100) that the job description demands for this missing skill.")
     })).max(4).describe("Up to 4 specific and relevant skills they are completely missing that the job description demands.")
 });
 
