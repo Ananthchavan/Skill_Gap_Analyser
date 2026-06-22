@@ -1,7 +1,7 @@
 import { generateText, Output } from 'ai';
 import { google } from '@ai-sdk/google';
-import { aiAnalysisSchema } from '../schemas/aiSchemas.js';
-import { aiRoadmapSchema } from '../schemas/aiSchemas.js';
+import { aiAnalysisSchema } from '../schemas/aiSchema.js';
+import { aiRoadmapSchema } from '../schemas/aiSchema.js';
 
 export async function generateAnalysis(analysisData) {
     try {

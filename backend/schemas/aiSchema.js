@@ -15,8 +15,6 @@ export const aiAnalysisSchema = z.object({
     })).max(4).describe("Up to 4 specific and relevant skills they are completely missing that the job description demands.")
 });
 
-import { z } from 'zod';
-
 export const aiRoadmapSchema = z.object({
     weeks: z.array(z.object({
         weekNumber: z.number().describe("The sequential number of the week (1 to 4)."),

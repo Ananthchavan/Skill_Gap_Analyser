@@ -1,6 +1,6 @@
 import Analysis from '../models/analysis.js';
 import { fetchAndFilterRepos } from './githubService.js';
-import { generateAnalysis, generateTechnicalRoadmap } from './aiService.js';
+import { generateAnalysis, generateTechnicalRoadmap } from './aiServices.js';
 
 export async function processAnalysisInBackground(analysisId) {
     try {
