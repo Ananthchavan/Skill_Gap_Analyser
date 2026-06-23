@@ -100,6 +100,25 @@ app.get('/api/logout', (req, res) => {
 
 // <===================== ANALYSIS ROUTES ======================>
 
+//Fetch all the analysis
+app.get('/api/analysis/dashboard', async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ error: 'You must be logged in to view the dashboard.' });
+        }
+
+        //by stripping the large json files,the dashboard loads faster
+        const analyses = await Analysis.find({ user: req.user._id })
+            .sort({ createdAt: -1 })
+            .select('-aiRoadmap -githubData -resumeText');
+        res.status(200).json(analyses);
+
+    } catch (error) {
+        console.error('Error fetching dashboard analyses:', error);
+        res.status(500).json({ error: 'An error occurred while loading the dashboard.' });
+    }
+});
+
 //New Analysis Route
 app.post('/api/analysis/new', upload.single('resume'), async (req, res) => {
     try {
