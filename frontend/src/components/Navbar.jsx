@@ -72,7 +72,7 @@ export default function Navbar() {
               {user && (
                 <>
                   <Link to="/YourAnalysis" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
-                    Your Analysis
+                    Dashboard
                   </Link>
                   <Link to="/NewAnalysis" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                     Add New Analysis
