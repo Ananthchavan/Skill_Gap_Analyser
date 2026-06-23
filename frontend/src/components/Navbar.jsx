@@ -130,7 +130,7 @@ export default function Navbar() {
                         <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
                         </svg>
-                        Your Analyses
+                        Dashboard
                       </Link>
                       <Link
                         to="/NewAnalysis"
@@ -206,7 +206,7 @@ export default function Navbar() {
             {user && (
               <>
                 <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
-                  Your Analysis
+                  Dashboard
                 </Link>
                 <Link to="/NewAnalysis" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
                   Add New Analysis
