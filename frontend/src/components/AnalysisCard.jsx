@@ -72,7 +72,7 @@ export default function AnalysisCard({ data }) {
                             to={`/dashboard/${data._id}`}
                             className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
                         >
-                            Go to Roadmap
+                            View Details
                         </Link>
                     </div>
                 )}
