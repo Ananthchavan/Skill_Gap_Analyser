@@ -16,23 +16,23 @@ export default function AnalysisCard({ data }) {
     })) || [];
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6 flex flex-col relative overflow-hidden">
 
             <div className="flex justify-between items-start mb-4">
                 <div>
                     {isProcessing ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400">
                             <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
                             Processing Analysis
                         </span>
                     ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                             Active
                         </span>
                     )}
-                    <h2 className="text-lg font-semibold text-gray-900 mt-3">{data.targetRole}</h2>
-                    <p className="text-sm text-gray-500">{dateFormatted}</p>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mt-3">{data.targetRole}</h2>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">{dateFormatted}</p>
                 </div>
 
                 <div className="w-24 h-24 absolute top-4 right-4 opacity-80">
@@ -51,26 +51,26 @@ export default function AnalysisCard({ data }) {
 
             <div className="flex flex-wrap gap-2 mb-8 z-10">
                 {data.aiAnalysis?.assessedSkills?.slice(0, 2).map((skill, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">
+                    <span key={idx} className="px-2 py-1 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 text-xs rounded-md">
                         {skill.skillName}
                     </span>
                 ))}
             </div>
 
-            <div className="mt-auto pt-4 border-t border-gray-100">
+            <div className="mt-auto pt-4 border-t border-gray-100 dark:border-slate-800">
                 {isProcessing ? (
-                    <div className="text-sm text-gray-500 italic">AI is analyzing your profile...</div>
+                    <div className="text-sm text-gray-500 dark:text-slate-400 italic">AI is analyzing your profile...</div>
                 ) : (
                     <div className="flex items-center justify-between">
                         <div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1 w-24">
+                            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5 mb-1 w-24">
                                 <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: `${matchScore}%` }}></div>
                             </div>
-                            <span className="text-xs font-medium text-gray-600">{matchScore}% Match Proficiency</span>
+                            <span className="text-xs font-medium text-gray-600 dark:text-slate-400">{matchScore}% Match Proficiency</span>
                         </div>
                         <Link
                             to={`/dashboard/${data._id}`}
-                            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
                         >
                             View Details
                         </Link>
