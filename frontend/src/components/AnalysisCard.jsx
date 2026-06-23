@@ -16,7 +16,10 @@ export default function AnalysisCard({ data }) {
     })) || [];
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6 flex flex-col relative overflow-hidden">
+        <Link
+            to={`/dashboard/${data._id}`}
+            className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6 flex flex-col relative overflow-hidden cursor-pointer hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition-all duration-200 group"
+        >
 
             <div className="flex justify-between items-start mb-4">
                 <div>
@@ -59,24 +62,16 @@ export default function AnalysisCard({ data }) {
 
             <div className="mt-auto pt-4 border-t border-gray-100 dark:border-slate-800">
                 {isProcessing ? (
-                    <div className="text-sm text-gray-500 dark:text-slate-400 italic">AI is analyzing your profile...</div>
+                    <div className="text-sm text-gray-500 dark:text-slate-400 italic text-center">AI is analyzing your profile...</div>
                 ) : (
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5 mb-1 w-24">
-                                <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: `${matchScore}%` }}></div>
-                            </div>
-                            <span className="text-xs font-medium text-gray-600 dark:text-slate-400">{matchScore}% Match Proficiency</span>
+                    <div className="flex flex-col items-center gap-1.5">
+                        <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
+                            <div className="bg-indigo-600 h-1.5 rounded-full transition-all duration-500" style={{ width: `${matchScore}%` }}></div>
                         </div>
-                        <Link
-                            to={`/dashboard/${data._id}`}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
-                        >
-                            View Details
-                        </Link>
+                        <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 tracking-wide">{matchScore}% Match Proficiency</span>
                     </div>
                 )}
             </div>
-        </div>
+        </Link>
     );
 }
