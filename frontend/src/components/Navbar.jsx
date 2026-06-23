@@ -71,7 +71,7 @@ export default function Navbar() {
               </a>
               {user && (
                 <>
-                  <Link to="/YourAnalysis" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
+                  <Link to="/dashboard" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
                     Dashboard
                   </Link>
                   <Link to="/NewAnalysis" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium transition-colors">
@@ -123,7 +123,7 @@ export default function Navbar() {
                         {user.email && <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{user.email}</p>}
                       </div>
                       <Link
-                        to="/YourAnalysis"
+                        to="/dashboard"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                       >
@@ -205,7 +205,7 @@ export default function Navbar() {
 
             {user && (
               <>
-                <Link to="/YourAnalysis" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
+                <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">
                   Your Analysis
                 </Link>
                 <Link to="/NewAnalysis" onClick={() => setMenuOpen(false)} className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium py-2">

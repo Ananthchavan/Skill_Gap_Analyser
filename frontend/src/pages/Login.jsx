@@ -1,6 +1,5 @@
 export default function Login() {
     const handleLogin = () => {
-        // hard redirect to express backend auth route
         window.location.href = 'http://localhost:8080/auth/github';
     };
 
