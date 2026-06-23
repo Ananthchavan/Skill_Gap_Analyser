@@ -3,11 +3,27 @@ import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import {
     Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer,
-    PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis
+    BarChart, Bar, XAxis, YAxis
 } from 'recharts';
+
+function useDarkMode() {
+    const [isDark, setIsDark] = useState(() =>
+        document.documentElement.classList.contains('dark')
+    );
+    useEffect(() => {
+        const observer = new MutationObserver(() => {
+            setIsDark(document.documentElement.classList.contains('dark'));
+        });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        return () => observer.disconnect();
+    }, []);
+    return isDark;
+}
 
 export default function AnalysisDetails() {
     const { id } = useParams();
+    const isDark = useDarkMode();
+    const gapColor = isDark ? '#334155' : '#E5E7EB';
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -151,7 +167,7 @@ export default function AnalysisDetails() {
                                                         <XAxis type="number" hide domain={[0, 100]} />
                                                         <YAxis type="category" hide dataKey="name" />
                                                         <Bar dataKey="level" stackId="a" fill="#6366F1" radius={[4, 0, 0, 4]} isAnimationActive={false} />
-                                                        <Bar dataKey="gap" stackId="a" fill="#334155" radius={[0, 4, 4, 0]} isAnimationActive={false} />
+                                                        <Bar dataKey="gap" stackId="a" fill={gapColor} radius={[0, 4, 4, 0]} isAnimationActive={false} />
                                                     </BarChart>
                                                 </ResponsiveContainer>
                                             </div>
