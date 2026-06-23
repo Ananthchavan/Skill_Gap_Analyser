@@ -100,6 +100,7 @@ app.get('/api/logout', (req, res) => {
 
 // <===================== ANALYSIS ROUTES ======================>
 
+//  DASHBOARD ROUTES
 //Fetch all the analysis
 app.get('/api/analysis/dashboard', async (req, res) => {
     try {
@@ -166,6 +167,29 @@ app.post('/api/analysis/new', upload.single('resume'), async (req, res) => {
     } catch (error) {
         console.error('Error processing analysis:', error);
         res.status(500).json({ error: 'An error occurred while saving the analysis.' });
+    }
+});
+
+//VIEW DETAILS ROUTE
+app.get('/api/analysis/:id', async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const analysis = await Analysis.findOne({
+            _id: req.params.id,
+            user: req.user._id
+        });
+
+        if (!analysis) {
+            return res.status(404).json({ error: 'Analysis not found' });
+        }
+
+        res.status(200).json(analysis);
+    } catch (error) {
+        console.error('Error fetching analysis details:', error);
+        res.status(500).json({ error: 'Failed to fetch details' });
     }
 });
 
