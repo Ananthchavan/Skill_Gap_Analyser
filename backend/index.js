@@ -77,7 +77,7 @@ app.get('/auth/github/callback',
         failureRedirect: `${process.env.CLIENT_URL}/login`
     }),
     (req, res) => {
-        res.redirect(`${process.env.CLIENT_URL}/NewAnalysis`);
+        res.redirect(`${process.env.CLIENT_URL}/auth/callback`);
     }
 );
 
