@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import {
     Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer,
-    BarChart, Bar, XAxis, YAxis
+    BarChart, Bar, XAxis, YAxis,
+    ComposedChart, Line, Tooltip, Legend, CartesianGrid
 } from 'recharts';
 
 const calculateTrueMatch = (assessedSkills = [], missingSkills = []) => {
@@ -64,6 +65,12 @@ export default function AnalysisDetails() {
         subject: skill.skillName,
         Level: skill.currentLevel,
         fullMark: 100,
+    }));
+
+    const proficiencyData = assessedSkills.map(skill => ({
+        name: skill.skillName,
+        Proficiency: skill.currentLevel,
+        Required: skill.targetLevel
     }));
 
     return (
@@ -181,6 +188,77 @@ export default function AnalysisDetails() {
                         </div>
 
                     </div>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+                        <h2 className="text-sm font-bold text-slate-800 mb-3">Top Missing Skills (Gap)</h2>
+
+                        {(!criticalMissingSkills || criticalMissingSkills.length === 0) ? (
+                            <div className="flex items-center justify-center h-24 text-emerald-600 bg-emerald-50/50 border border-emerald-100 rounded-lg font-medium text-xs">
+                                No critical skills missing!
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {criticalMissingSkills.map((skill, idx) => {
+                                    let badgeColor = "bg-slate-100 text-slate-600";
+                                    if (skill.importance === 'High') badgeColor = "bg-red-50 text-red-600";
+                                    if (skill.importance === 'Medium') badgeColor = "bg-amber-50 text-amber-600";
+                                    if (skill.importance === 'Low') badgeColor = "bg-yellow-50 text-yellow-600";
+
+                                    return (
+                                        <div key={idx} className="flex justify-between items-start border-b border-slate-50 pb-2.5 last:border-0 last:pb-0">
+                                            <div className="pr-3">
+                                                <div className="text-xs font-semibold text-slate-900">{skill.skillName}</div>
+                                                <div className="text-[10px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed" title={skill.reason}>
+                                                    {skill.reason}
+                                                </div>
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider whitespace-nowrap mt-0.5 ${badgeColor}`}>
+                                                {skill.importance}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-5 flex flex-col min-h-[280px]">
+                        <h2 className="text-sm font-bold text-slate-800 mb-4">Proficiency vs. Required</h2>
+                        <div className="flex-1 w-full relative">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <ComposedChart data={proficiencyData} margin={{ top: 10, right: 10, bottom: 20, left: -25 }}>
+                                    <CartesianGrid stroke="#F1F5F9" strokeDasharray="3 3" vertical={false} />
+
+                                    <XAxis
+                                        dataKey="name"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#64748B', fontSize: 10, fontWeight: 500 }}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        domain={[0, 100]}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94A3B8', fontSize: 10 }}
+                                    />
+
+                                    <Tooltip
+                                        cursor={{ fill: '#F8FAFC' }}
+                                        contentStyle={{ borderRadius: '8px', border: '1px solid #F1F5F9', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', fontSize: '11px' }}
+                                    />
+                                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '15px', fontSize: '10px', color: '#64748B' }} />
+
+                                    <Bar dataKey="Proficiency" barSize={32} fill="#A5B4FC" radius={[4, 4, 0, 0]} />
+
+                                    <Line type="monotone" dataKey="Required" stroke="#4F46E5" strokeWidth={2} dot={{ r: 3.5, fill: '#fff', stroke: '#4F46E5', strokeWidth: 2 }} activeDot={{ r: 5 }} />
+                                </ComposedChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
