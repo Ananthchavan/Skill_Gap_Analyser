@@ -6,24 +6,25 @@ import {
     BarChart, Bar, XAxis, YAxis
 } from 'recharts';
 
-function useDarkMode() {
-    const [isDark, setIsDark] = useState(() =>
-        document.documentElement.classList.contains('dark')
-    );
-    useEffect(() => {
-        const observer = new MutationObserver(() => {
-            setIsDark(document.documentElement.classList.contains('dark'));
-        });
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-        return () => observer.disconnect();
-    }, []);
-    return isDark;
-}
+const calculateTrueMatch = (assessedSkills = [], missingSkills = []) => {
+    let totalScore = 0;
+    const totalSkills = assessedSkills.length + missingSkills.length;
+
+    if (totalSkills === 0) return 0;
+
+    assessedSkills.forEach(skill => {
+        if (skill.currentLevel >= skill.targetLevel) {
+            totalScore += 100;
+        } else {
+            totalScore += (skill.currentLevel / skill.targetLevel) * 100;
+        }
+    });
+
+    return Math.round(totalScore / totalSkills);
+};
 
 export default function AnalysisDetails() {
     const { id } = useParams();
-    const isDark = useDarkMode();
-    const gapColor = isDark ? '#334155' : '#E5E7EB';
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -37,7 +38,7 @@ export default function AnalysisDetails() {
                 const result = await res.json();
                 setData(result);
             } catch (error) {
-                console.error(error);
+                console.error("Fetch error:", error);
             } finally {
                 setLoading(false);
             }
@@ -47,21 +48,17 @@ export default function AnalysisDetails() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950">
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
             </div>
         );
     }
 
-    if (!data || !data.aiAnalysis) return (
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
-            <Navbar />
-            <div className="p-10 text-slate-600 dark:text-slate-400">Analysis not found or still processing.</div>
-        </div>
-    );
+    if (!data || !data.aiAnalysis) return <div className="p-10">Analysis not found or still processing.</div>;
 
-    const overallMatch = data.aiAnalysis?.overallMatch || 0;
-    const assessedSkills = data.aiAnalysis?.assessedSkills || [];
+    const { assessedSkills, criticalMissingSkills } = data.aiAnalysis;
+
+    const trueOverallMatch = calculateTrueMatch(assessedSkills, criticalMissingSkills || []);
 
     const radarData = assessedSkills.map(skill => ({
         subject: skill.skillName,
@@ -69,128 +66,110 @@ export default function AnalysisDetails() {
         fullMark: 100,
     }));
 
-    const pieColors = ['#4F46E5', '#E5E7EB'];
-
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
+        <div className="min-h-screen bg-slate-50">
             <Navbar />
-            <div className="max-w-7xl mx-auto px-4 py-3 space-y-3">
+
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-4">
 
                 {/* Header */}
                 <div>
-                    <Link to="/dashboard" className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mb-2 inline-block font-medium">
+                    <Link to="/dashboard" className="text-xs font-semibold text-indigo-500 uppercase tracking-widest mb-2 inline-block hover:text-indigo-700 transition">
                         &larr; Back to Dashboard
                     </Link>
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 px-4 py-3 flex justify-between items-center">
-                        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">Analysis Details</h1>
-                        <span className="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <div className="bg-white rounded-xl border border-slate-100 shadow-sm px-5 py-3 flex justify-between items-center">
+                        <div>
+                            <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-widest mb-0.5">/ analysis-details</p>
+                            <h1 className="text-xl font-bold text-slate-900">Analysis Details</h1>
+                        </div>
+                        <span className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
                             Target Role: {data.targetRole}
                         </span>
                     </div>
                 </div>
 
-                {/* Main Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-                    {/* Radar Chart */}
-                    <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-4 flex flex-col min-h-[320px]">
-                        <h2 className="text-sm font-bold text-gray-800 dark:text-slate-200 mb-2">Skill Gap Radar</h2>
+                    {/* Left: Radar Chart */}
+                    <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-5 flex flex-col min-h-[340px]">
+                        <h2 className="text-sm font-bold text-slate-800 mb-3">Skill Gap Radar</h2>
                         <div className="flex-1 w-full relative">
                             <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
-                                    <PolarGrid gridType="polygon" stroke="#e2e8f0" />
-                                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#6B7280', fontSize: 13 }} />
+                                    <PolarGrid gridType="polygon" />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#6B7280', fontSize: 12 }} />
                                     <Radar name="Proficiency" dataKey="Level" stroke="#6366F1" fill="#818CF8" fillOpacity={0.4} />
                                 </RadarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
-                    {/* Right column */}
-                    <div className="space-y-4">
+                    <div className="space-y-5">
 
-                        {/* Semi-circle gauge */}
-                        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-4 flex flex-col items-center justify-center min-h-[190px]">
-                            <div className="relative flex flex-col items-center justify-center w-full max-w-[200px] pt-2">
-                                <svg viewBox="0 0 200 110" className="w-full overflow-visible">
-                                    <path
-                                        d="M 20 100 A 80 80 0 0 1 180 100"
-                                        fill="none"
-                                        stroke="#E2E8F0"
-                                        strokeWidth="16"
-                                        strokeLinecap="round"
-                                    />
+                        {/* Right Top: SVG Half-Donut */}
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5 flex flex-col items-center justify-center min-h-[200px]">
+                            <div className="relative flex flex-col items-center justify-center w-full max-w-[210px] pt-2">
+                                <svg viewBox="0 0 200 110" className="w-full drop-shadow-sm overflow-visible">
+                                    <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#F1F5F9" strokeWidth="18" strokeLinecap="round" />
                                     <path
                                         d="M 20 100 A 80 80 0 0 1 180 100"
                                         fill="none"
                                         stroke="#4F46E5"
-                                        strokeWidth="16"
+                                        strokeWidth="18"
                                         strokeLinecap="round"
                                         strokeDasharray="251.3"
-                                        strokeDashoffset={251.3 - (251.3 * overallMatch) / 100}
+                                        strokeDashoffset={251.3 - (251.3 * trueOverallMatch) / 100}
                                         className="transition-all duration-1000 ease-out"
                                     />
                                 </svg>
-                                <div className="absolute bottom-1 flex flex-col items-center">
-                                    <span className="text-3xl font-extrabold text-gray-900 dark:text-slate-100 leading-none tracking-tight">
-                                        {overallMatch}%
+                                <div className="absolute bottom-2 flex flex-col items-center">
+                                    <span className="text-[34px] font-extrabold text-slate-900 leading-none tracking-tight">
+                                        {trueOverallMatch}%
                                     </span>
-                                    <span className="text-xs font-medium text-gray-500 dark:text-slate-400 mt-0.5">
-                                        Overall Skill Match
-                                    </span>
+                                    <span className="text-xs font-medium text-slate-500 mt-1">Overall Skill Match</span>
                                 </div>
                             </div>
-                            <div className="mt-2 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-gray-500 dark:text-slate-400 text-[10px] font-semibold px-4 py-1 rounded-full">
-                                Gap: {100 - overallMatch}%
+                            <div className="mt-3 bg-slate-50 border border-slate-100 text-slate-500 text-xs font-semibold px-4 py-1 rounded-full">
+                                Gap: {100 - trueOverallMatch}%
                             </div>
                         </div>
 
-                        {/* Skill Bars */}
-                        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-4">
-                            <h2 className="text-sm font-bold text-gray-800 dark:text-slate-200 mb-3">Skill Proficiency &amp; Gaps</h2>
+                        {/* Right Bottom: Stacked Bars */}
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+                            <h2 className="text-sm font-bold text-slate-800 mb-3">Skill Proficiency & Gaps</h2>
                             <div className="grid grid-cols-2 gap-x-3 gap-y-3">
                                 {assessedSkills.map((skill, idx) => {
-                                    // 1. Calculate the real math for the 3-part scale
                                     const current = skill.currentLevel;
                                     const target = skill.targetLevel;
-
-                                    // Ensure gap doesn't go negative if they over-achieve the target
                                     const trueGap = Math.max(0, target - current);
-
-                                    // The remaining gray space up to 100%
                                     const empty = 100 - current - trueGap;
 
-                                    const barData = [{
-                                        name: 'Skill',
-                                        current: current,
-                                        gap: trueGap,
-                                        empty: empty
-                                    }];
+                                    const barData = [{ name: 'Skill', current: current, gap: trueGap, empty: empty }];
 
                                     return (
-                                        <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-100 shadow-sm">
-                                            <div className="flex justify-between items-center mb-2">
-                                                <span className="text-sm font-semibold text-gray-900 truncate pr-2">{skill.skillName}</span>
-                                                <span className="text-sm font-bold text-gray-700">{current}%</span>
+                                        <div key={idx} className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 shadow-sm">
+                                            <div className="flex justify-between items-center mb-1.5">
+                                                <span className="text-xs font-semibold text-slate-900 truncate pr-2">{skill.skillName}</span>
+                                                <span className="text-xs font-bold text-slate-700">{current}%</span>
                                             </div>
 
-                                            <div className="h-4 w-full">
+                                            <div className="h-3.5 w-full">
                                                 <ResponsiveContainer width="100%" height="100%">
                                                     <BarChart layout="vertical" data={barData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                                                         <XAxis type="number" hide domain={[0, 100]} />
                                                         <YAxis type="category" hide dataKey="name" />
-
                                                         <Bar dataKey="current" stackId="a" fill="#6366F1" radius={[4, 0, 0, 4]} isAnimationActive={false} />
-
                                                         <Bar dataKey="gap" stackId="a" fill="#A5B4FC" radius={[0, 0, 0, 0]} isAnimationActive={false} />
-
-                                                        <Bar dataKey="empty" stackId="a" fill="#E5E7EB" radius={[0, 4, 4, 0]} isAnimationActive={false} />
+                                                        <Bar dataKey="empty" stackId="a" fill="#E2E8F0" radius={[0, 4, 4, 0]} isAnimationActive={false} />
                                                     </BarChart>
                                                 </ResponsiveContainer>
                                             </div>
-                                            <div className="flex justify-between items-center mt-2 text-[10px] font-bold uppercase tracking-wider">
-                                                <span className="text-gray-400">Target: {target}%</span>
+
+                                            <div className="flex justify-between items-center mt-1.5 text-[9px] font-bold uppercase tracking-wider">
+                                                <span className="text-slate-400">Target: {target}%</span>
                                                 <span className={trueGap > 0 ? "text-indigo-500" : "text-emerald-500"}>
                                                     {trueGap > 0 ? `Gap: ${trueGap}%` : 'Target Met'}
                                                 </span>
