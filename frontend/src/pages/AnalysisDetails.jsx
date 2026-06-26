@@ -151,30 +151,49 @@ export default function AnalysisDetails() {
                             <h2 className="text-sm font-bold text-gray-800 dark:text-slate-200 mb-3">Skill Proficiency &amp; Gaps</h2>
                             <div className="grid grid-cols-2 gap-x-3 gap-y-3">
                                 {assessedSkills.map((skill, idx) => {
-                                    const gap = 100 - skill.currentLevel;
-                                    const barData = [{ name: 'Skill', level: skill.currentLevel, gap: gap }];
+                                    // 1. Calculate the real math for the 3-part scale
+                                    const current = skill.currentLevel;
+                                    const target = skill.targetLevel;
+
+                                    // Ensure gap doesn't go negative if they over-achieve the target
+                                    const trueGap = Math.max(0, target - current);
+
+                                    // The remaining gray space up to 100%
+                                    const empty = 100 - current - trueGap;
+
+                                    const barData = [{
+                                        name: 'Skill',
+                                        current: current,
+                                        gap: trueGap,
+                                        empty: empty
+                                    }];
 
                                     return (
-                                        <div key={idx} className="bg-gray-50 dark:bg-slate-800 p-2 rounded-lg border border-gray-100 dark:border-slate-700">
-                                            <div className="flex justify-between items-center mb-1.5">
-                                                <span className="text-xs font-semibold text-gray-900 dark:text-slate-200 truncate pr-1">{skill.skillName}</span>
-                                                <span className="text-xs font-bold text-gray-700 dark:text-slate-300">{skill.currentLevel}%</span>
+                                        <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-100 shadow-sm">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-sm font-semibold text-gray-900 truncate pr-2">{skill.skillName}</span>
+                                                <span className="text-sm font-bold text-gray-700">{current}%</span>
                                             </div>
 
-                                            <div className="h-3 w-full">
+                                            <div className="h-4 w-full">
                                                 <ResponsiveContainer width="100%" height="100%">
                                                     <BarChart layout="vertical" data={barData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                                                         <XAxis type="number" hide domain={[0, 100]} />
                                                         <YAxis type="category" hide dataKey="name" />
-                                                        <Bar dataKey="level" stackId="a" fill="#6366F1" radius={[4, 0, 0, 4]} isAnimationActive={false} />
-                                                        <Bar dataKey="gap" stackId="a" fill={gapColor} radius={[0, 4, 4, 0]} isAnimationActive={false} />
+
+                                                        <Bar dataKey="current" stackId="a" fill="#6366F1" radius={[4, 0, 0, 4]} isAnimationActive={false} />
+
+                                                        <Bar dataKey="gap" stackId="a" fill="#A5B4FC" radius={[0, 0, 0, 0]} isAnimationActive={false} />
+
+                                                        <Bar dataKey="empty" stackId="a" fill="#E5E7EB" radius={[0, 4, 4, 0]} isAnimationActive={false} />
                                                     </BarChart>
                                                 </ResponsiveContainer>
                                             </div>
-
-                                            <div className="flex justify-between items-center mt-2 text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">
-                                                <span>Level</span>
-                                                <span>Gap: {gap}%</span>
+                                            <div className="flex justify-between items-center mt-2 text-[10px] font-bold uppercase tracking-wider">
+                                                <span className="text-gray-400">Target: {target}%</span>
+                                                <span className={trueGap > 0 ? "text-indigo-500" : "text-emerald-500"}>
+                                                    {trueGap > 0 ? `Gap: ${trueGap}%` : 'Target Met'}
+                                                </span>
                                             </div>
                                         </div>
                                     );
