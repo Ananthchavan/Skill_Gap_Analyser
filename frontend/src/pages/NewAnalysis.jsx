@@ -81,11 +81,26 @@ export default function NewAnalysis() {
   const [isDragging, setIsDragging] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
-  const [successData, setSuccessData] = useState(null) // { analysisId }
+  const [successData, setSuccessData] = useState(null)
+  const [selfAttestedSkills, setSelfAttestedSkills] = useState([])
+
+  const UNSCRAPABLE_SKILLS = [
+    'Cloud Platforms (AWS, GCP, Azure)',
+    'CI/CD Pipelines & Automation (GitHub Actions, Jenkins)',
+    'Containerization & Orchestration (Docker, Kubernetes)',
+    'System Design & Microservices Architecture',
+    'Database Optimization & Data Modeling (Indexing, Sharding)',
+    'API Design & Documentation (OpenAPI/Swagger, GraphQL Schemas)',
+    'Testing Methodologies (TDD, BDD, E2E Testing with Cypress/Playwright)',
+    'Application Security Best Practices (OWASP Top 10, OAuth, Encryption)',
+    'Performance Optimization (Caching Strategies, Lazy Loading, CDN Configuration)',
+    'Agile / Scrum Methodologies & Sprint Planning',
+    'Technical Documentation & Technical Writing (Architecture Decision Records)',
+    'Team Leadership, Mentoring & Code Review Workflows'
+  ]
 
   const fileInputRef = useRef(null)
 
-  /* ── Pre-fill GitHub URL from logged-in user ── */
   useEffect(() => {
     fetch('http://localhost:8080/api/current_user', { credentials: 'include' })
       .then((res) => (res.ok ? res.json() : null))
@@ -164,6 +179,8 @@ export default function NewAnalysis() {
     fd.append('studyHours', studyHours[0])
     fd.append('weeksDuration', weeksDuration)
     if (resumeFile) fd.append('resume', resumeFile)
+
+    fd.append('selfAttestedSkills', JSON.stringify(selfAttestedSkills))
 
     try {
       const res = await fetch('http://localhost:8080/api/analysis/new', {
@@ -484,6 +501,45 @@ export default function NewAnalysis() {
                 {errors.resume && (
                   <p className="mt-1.5 text-xs text-red-500">{errors.resume}</p>
                 )}
+              </div>
+              <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-800">
+                <div className="flex justify-between items-end mb-3">
+                  <FieldLabel htmlFor="unscrapableSkills">
+                    Self-Attested Skills (Optional)
+                  </FieldLabel>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+                  AI cannot reliably detect certain workflow or infrastructure skills just from reading code files. Select any skills you possess below so the AI does not falsely mark them as "Missing".
+                </p>
+
+                <div className="flex flex-wrap gap-2.5">
+                  {UNSCRAPABLE_SKILLS.map((skill) => {
+                    const isSelected = selfAttestedSkills.includes(skill);
+                    return (
+                      <button
+                        key={skill}
+                        type="button"
+                        onClick={() => {
+                          setSelfAttestedSkills(prev =>
+                            isSelected
+                              ? prev.filter(s => s !== skill)
+                              : [...prev, skill]
+                          )
+                        }}
+                        className={`
+                          px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-200
+                          ${isSelected
+                            ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300 shadow-sm'
+                            : 'bg-white border-gray-200 text-slate-600 hover:border-indigo-300 hover:bg-indigo-50/50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:border-indigo-500/50'
+                          }
+                        `}
+                      >
+                        {isSelected && <CheckCircle2 className="w-3 h-3 inline-block mr-1.5 -mt-0.5" />}
+                        {skill}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             </div>
 
