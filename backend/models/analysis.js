@@ -35,6 +35,10 @@ const analysisSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    attestedSkills: {
+        type: [String],
+        default: [],
+    },
     githubData: {
         type: mongoose.Schema.Types.Mixed,
         default: null,
