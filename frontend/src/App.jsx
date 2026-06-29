@@ -17,6 +17,7 @@ export default function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
 
+        {/*protected routes*/}
         <Route
           path="/NewAnalysis"
           element={
