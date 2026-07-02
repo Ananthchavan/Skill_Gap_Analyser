@@ -79,7 +79,7 @@ export default function AnalysisDetails() {
         Required: skill.targetLevel
     }));
 
-    // Dynamic colors based on theme
+    //dynamic colors based on theme
     const radarTickColor = isDark ? '#94A3B8' : '#6B7280';
     const gridColor = isDark ? '#1E293B' : '#F1F5F9';
     const xAxisColor = isDark ? '#94A3B8' : '#64748B';
@@ -98,7 +98,7 @@ export default function AnalysisDetails() {
 
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-4">
 
-                {/* Header */}
+                {/* header */}
                 <div>
                     <Link to="/dashboard" className="text-xs font-semibold text-indigo-500 uppercase tracking-widest mb-2 inline-block hover:text-indigo-400 transition">
                         &larr; Back to Dashboard
@@ -119,7 +119,7 @@ export default function AnalysisDetails() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-                    {/* Left: Radar Chart */}
+                    {/* left: radar chart */}
                     <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex flex-col min-h-[340px]">
                         <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">Skill Gap Radar</h2>
                         <div className="flex-1 w-full relative">
@@ -135,7 +135,7 @@ export default function AnalysisDetails() {
 
                     <div className="space-y-5">
 
-                        {/* Right Top: SVG Half-Donut */}
+                        {/* right top: svg half-donut */}
                         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex flex-col items-center justify-center min-h-[200px]">
                             <div className="relative flex flex-col items-center justify-center w-full max-w-[210px] pt-2">
                                 <svg viewBox="0 0 200 110" className="w-full drop-shadow-sm overflow-visible">
@@ -163,7 +163,7 @@ export default function AnalysisDetails() {
                             </div>
                         </div>
 
-                        {/* Right Bottom: Stacked Bars */}
+                        {/*right bottom: stacked bars */}
                         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-5">
                             <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">Skill Proficiency & Gaps</h2>
                             <div className="grid grid-cols-2 gap-x-3 gap-y-3">
@@ -211,7 +211,7 @@ export default function AnalysisDetails() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-                    {/* Missing Skills */}
+                    {/* missing skills */}
                     <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-5">
                         <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">Top Missing Skills (Gap)</h2>
 
