@@ -62,7 +62,8 @@ export async function generateTechnicalRoadmap(analysisData) {
             2. Weekly Time Budget: The user has exactly ${totalWeeklyHours} hours available in a week (roughly ${analysisData.studyHours} hours/day).
                - If weekly hours are low (< 14 hours/week), keep tasks highly focused on syntax and core concepts. Do not overwhelm them.
                - If weekly hours are high (28+ hours/week), increase the density. Include advanced architecture, testing, and deployment tasks.
-            3. Actionable & Direct: Focus heavily on closing the missing skills found in their profile relative to the job description. Provide precise technical topics.`,
+            3. Actionable & Direct: Focus heavily on closing the missing skills found in their profile relative to the job description. Provide precise technical topics.
+            4. Task Tagging: Every single daily task MUST include an "associatedSkill" tag. This tag must perfectly match the exact spelling of one of the skills listed in the user's profile context below. Do not invent new skill names.`,
 
             prompt: `
                 Target Role: ${analysisData.targetRole}
