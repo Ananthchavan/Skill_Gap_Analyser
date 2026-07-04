@@ -26,6 +26,10 @@ export async function generateAnalysis(analysisData) {
                 
                 [User's Resume Text]
                 ${analysisData.resumeText}
+
+                [User's Self-Attested Skills]
+                The user explicitly confirms they possess these skills. You MUST accept these as valid and incorporate them into 'assessedSkills'. DO NOT list them in 'criticalMissingSkills'.
+                ${analysisData.selfAttestedSkills && analysisData.selfAttestedSkills.length > 0 ? analysisData.selfAttestedSkills.join(', ') : 'None'}
                 
                 [User's Analyzed GitHub Portfolio Data]
                 ${JSON.stringify(analysisData.githubData, null, 2)}
