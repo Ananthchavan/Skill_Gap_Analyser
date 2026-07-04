@@ -65,12 +65,8 @@ const inputClass =
   'focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 ' +
   'transition-all shadow-sm'
 
-/* ─────────────── main page ─────────────── */
-
 export default function NewAnalysis() {
   const navigate = useNavigate()
-
-  /* form state */
   const [targetRole, setTargetRole] = useState('')
   const [experienceLevel, setExperienceLevel] = useState('')
   const [githubUrl, setGithubUrl] = useState('')
@@ -83,21 +79,30 @@ export default function NewAnalysis() {
   const [errors, setErrors] = useState({})
   const [successData, setSuccessData] = useState(null)
   const [selfAttestedSkills, setSelfAttestedSkills] = useState([])
+  const [showAllSkills, setShowAllSkills] = useState(false)
 
-  const UNSCRAPABLE_SKILLS = [
-    'Cloud Platforms (AWS, GCP, Azure)',
-    'CI/CD Pipelines & Automation (GitHub Actions, Jenkins)',
-    'Containerization & Orchestration (Docker, Kubernetes)',
-    'System Design & Microservices Architecture',
-    'Database Optimization & Data Modeling (Indexing, Sharding)',
-    'API Design & Documentation (OpenAPI/Swagger, GraphQL Schemas)',
-    'Testing Methodologies (TDD, BDD, E2E Testing with Cypress/Playwright)',
-    'Application Security Best Practices (OWASP Top 10, OAuth, Encryption)',
-    'Performance Optimization (Caching Strategies, Lazy Loading, CDN Configuration)',
-    'Agile / Scrum Methodologies & Sprint Planning',
-    'Technical Documentation & Technical Writing (Architecture Decision Records)',
-    'Team Leadership, Mentoring & Code Review Workflows'
-  ]
+  const SKILL_TIERS = {
+    entry: [
+      'Agile / Scrum Methodologies & Sprint Planning',
+      'Testing Methodologies (TDD, BDD, E2E Testing with Cypress/Playwright)',
+      'Technical Documentation & Technical Writing (Architecture Decision Records)'
+    ],
+    junior: [
+      'Cloud Platforms (AWS, GCP, Azure)',
+      'CI/CD Pipelines & Automation (GitHub Actions, Jenkins)',
+      'API Design & Documentation (OpenAPI/Swagger, GraphQL Schemas)',
+      'Application Security Best Practices (OWASP Top 10, OAuth, Encryption)'
+    ],
+    mid: [
+      'Containerization & Orchestration (Docker, Kubernetes)',
+      'Database Optimization & Data Modeling (Indexing, Sharding)',
+      'Performance Optimization (Caching Strategies, Lazy Loading, CDN Configuration)'
+    ],
+    senior: [
+      'System Design & Microservices Architecture',
+      'Team Leadership, Mentoring & Code Review Workflows'
+    ]
+  }
 
   const fileInputRef = useRef(null)
 
@@ -197,6 +202,18 @@ export default function NewAnalysis() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  let visibleSkills = []
+  if (showAllSkills || !experienceLevel) {
+    visibleSkills = [
+      ...SKILL_TIERS.entry, ...SKILL_TIERS.junior, ...SKILL_TIERS.mid, ...SKILL_TIERS.senior
+    ]
+  } else {
+    visibleSkills = [...SKILL_TIERS.entry]
+    if (['junior', 'mid', 'senior'].includes(experienceLevel)) visibleSkills.push(...SKILL_TIERS.junior)
+    if (['mid', 'senior'].includes(experienceLevel)) visibleSkills.push(...SKILL_TIERS.mid)
+    if (experienceLevel === 'senior') visibleSkills.push(...SKILL_TIERS.senior)
   }
 
   return (
@@ -512,8 +529,8 @@ export default function NewAnalysis() {
                   AI cannot reliably detect certain workflow or infrastructure skills just from reading code files. Select any skills you possess below so the AI does not falsely mark them as "Missing".
                 </p>
 
-                <div className="flex flex-wrap gap-2.5">
-                  {UNSCRAPABLE_SKILLS.map((skill) => {
+                <div className="flex flex-wrap gap-2.5 transition-all">
+                  {visibleSkills.map((skill) => {
                     const isSelected = selfAttestedSkills.includes(skill);
                     return (
                       <button
