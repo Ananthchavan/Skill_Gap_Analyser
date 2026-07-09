@@ -85,10 +85,10 @@ export default function NewAnalysis() {
     entry: [
       'Agile / Scrum Methodologies & Sprint Planning',
       'Testing Methodologies (TDD, BDD, E2E Testing with Cypress/Playwright)',
-      'Technical Documentation & Technical Writing (Architecture Decision Records)'
+      'Technical Documentation & Technical Writing (Architecture Decision Records)',
+      'Cloud Platforms (AWS, GCP, Azure)'
     ],
     junior: [
-      'Cloud Platforms (AWS, GCP, Azure)',
       'CI/CD Pipelines & Automation (GitHub Actions, Jenkins)',
       'API Design & Documentation (OpenAPI/Swagger, GraphQL Schemas)',
       'Application Security Best Practices (OWASP Top 10, OAuth, Encryption)'
