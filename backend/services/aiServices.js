@@ -16,6 +16,7 @@ export async function generateAnalysis(analysisData) {
             Do not be overly polite or give artificial high scores. If they lack critical skills, state it clearly.
             Analyze the provided GitHub repository data, resume text, and job description to determine their true proficiency levels.
 
+            CRITICAL RULE ON SELF-ATTESTED SKILLS: The user will provide a list of 'Self-Attested Skills'. If a skill required by the Job Description conceptually matches or overlaps with ANY of these self-attested skills (e.g., 'Agile Development' overlaps with 'Agile / Scrum Methodologies'), you MUST consider the user proficient. You are STRICTLY FORBIDDEN from putting conceptually matching skills into the 'criticalMissingSkills' array.
             CRITICAL DATA INSTRUCTION: When analyzing the GitHub repository data, you are strictly forbidden from only looking at the top-level 'language' key (e.g., JavaScript or TypeScript). You MUST deeply inspect the 'dependencies' and 'dependenciesRaw' objects for every repository. Modern frameworks (React, Express, Next.js, Angular) and libraries (Tailwind, Redux, Mongoose) will ONLY appear in these dependency lists. If a framework or tool is listed in their dependencies, you MUST credit them with proficiency in that skill.
 
             IMPORTANT: For the 'criticalMissingSkills' array, you must determine the required 'targetLevel' (0-100) based on the job description. Because these skills are missing, you MUST hardcode the user's 'currentLevel' to 0 for every item in this array.`,
@@ -30,7 +31,6 @@ export async function generateAnalysis(analysisData) {
                 ${analysisData.resumeText}
 
                 [User's Self-Attested Skills]
-                The user explicitly confirms they possess these skills. You MUST accept these as valid and incorporate them into 'assessedSkills'. DO NOT list them in 'criticalMissingSkills'.
                 ${analysisData.selfAttestedSkills && analysisData.selfAttestedSkills.length > 0 ? analysisData.selfAttestedSkills.join(', ') : 'None'}
                 
                 [User's Analyzed GitHub Portfolio Data]
