@@ -133,8 +133,18 @@ app.post('/api/analysis/new', upload.single('resume'), async (req, res) => {
             githubUrl,
             jobDescription,
             studyHours,
-            weeksDuration
+            weeksDuration,
+            selfAttestedSkills
         } = req.body;
+
+        let parsedSkills = [];
+        try {
+            if (selfAttestedSkills) {
+                parsedSkills = JSON.parse(selfAttestedSkills);
+            }
+        } catch (e) {
+            console.error('Failed to parse selfAttestedSkills:', e);
+        }
 
         if (!req.file) {
             return res.status(400).json({ error: 'Resume pdf is required' });
@@ -152,6 +162,7 @@ app.post('/api/analysis/new', upload.single('resume'), async (req, res) => {
             studyHours: studyHours,
             weeksDuration: weeksDuration,
             resumeText: ResumeText,
+            selfAttestedSkills: parsedSkills,
             status: 'pending',
         });
 
