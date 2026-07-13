@@ -35,7 +35,7 @@ const analysisSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    attestedSkills: {
+    selfAttestedSkills: {
         type: [String],
         default: [],
     },
