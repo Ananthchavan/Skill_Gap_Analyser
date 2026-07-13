@@ -105,12 +105,21 @@ export async function fetchAndFilterRepos(githubUrl) {
                             const decoded = Buffer.from(pkgData.content, 'base64').toString('utf-8');
                             if (manifestPath === 'package.json') {
                                 const parsed = JSON.parse(decoded);
-                                baseData.dependencies = {
-                                    ...parsed.dependencies,
-                                    ...parsed.devDependencies,
-                                };
+                                const allDeps = Object.keys({
+                                    ...(parsed.dependencies || {}),
+                                    ...(parsed.devDependencies || {})
+                                });
+
+                                //strip out unnecessary dependecies
+                                const noiseWords = ['@types', 'eslint', 'prettier', 'husky', 'lint', 'babel', 'nodemon', 'ts-node', 'jest', 'vitest'];
+
+                                baseData.detectedFrameworks = allDeps
+                                    .filter(dep => !noiseWords.some(noise => dep.includes(noise)))
+                                    .slice(0, 15); //to save LLM tokens
+
                             } else {
-                                baseData.dependenciesRaw = decoded.substring(0, 1000);
+                                //for python/java
+                                baseData.detectedFrameworks = decoded.substring(0, 300);
                             }
                         }
                     } catch {
