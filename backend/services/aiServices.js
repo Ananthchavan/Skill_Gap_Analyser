@@ -15,7 +15,9 @@ export async function generateAnalysis(analysisData) {
             Your goal is to evaluate the user's current skills against their target role. 
             Do not be overly polite or give artificial high scores. If they lack critical skills, state it clearly.
             Analyze the provided GitHub repository data, resume text, and job description to determine their true proficiency levels.
-            
+
+            CRITICAL DATA INSTRUCTION: When analyzing the GitHub repository data, you are strictly forbidden from only looking at the top-level 'language' key (e.g., JavaScript or TypeScript). You MUST deeply inspect the 'dependencies' and 'dependenciesRaw' objects for every repository. Modern frameworks (React, Express, Next.js, Angular) and libraries (Tailwind, Redux, Mongoose) will ONLY appear in these dependency lists. If a framework or tool is listed in their dependencies, you MUST credit them with proficiency in that skill.
+
             IMPORTANT: For the 'criticalMissingSkills' array, you must determine the required 'targetLevel' (0-100) based on the job description. Because these skills are missing, you MUST hardcode the user's 'currentLevel' to 0 for every item in this array.`,
             prompt: `
                 Target Role: ${analysisData.targetRole}
