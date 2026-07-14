@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import dotenv from 'dotenv';
+import { extractNonCodeableSkills } from './services/aiServices.js';
 
 // Load .env with absolute path BEFORE any other imports
 const __filename = fileURLToPath(import.meta.url);
