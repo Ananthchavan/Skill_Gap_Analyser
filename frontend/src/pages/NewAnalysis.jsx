@@ -79,30 +79,6 @@ export default function NewAnalysis() {
   const [errors, setErrors] = useState({})
   const [successData, setSuccessData] = useState(null)
   const [selfAttestedSkills, setSelfAttestedSkills] = useState([])
-  const [showAllSkills, setShowAllSkills] = useState(false)
-
-  const SKILL_TIERS = {
-    entry: [
-      'Agile / Scrum Methodologies & Sprint Planning',
-      'Testing Methodologies (TDD, BDD, E2E Testing with Cypress/Playwright)',
-      'Technical Documentation & Technical Writing (Architecture Decision Records)',
-      'Cloud Platforms (AWS, GCP, Azure)'
-    ],
-    junior: [
-      'CI/CD Pipelines & Automation (GitHub Actions, Jenkins)',
-      'API Design & Documentation (OpenAPI/Swagger, GraphQL Schemas)',
-      'Application Security Best Practices (OWASP Top 10, OAuth, Encryption)'
-    ],
-    mid: [
-      'Containerization & Orchestration (Docker, Kubernetes)',
-      'Database Optimization & Data Modeling (Indexing, Sharding)',
-      'Performance Optimization (Caching Strategies, Lazy Loading, CDN Configuration)'
-    ],
-    senior: [
-      'System Design & Microservices Architecture',
-      'Team Leadership, Mentoring & Code Review Workflows'
-    ]
-  }
 
   const fileInputRef = useRef(null)
 
@@ -202,18 +178,6 @@ export default function NewAnalysis() {
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  let visibleSkills = []
-  if (showAllSkills || !experienceLevel) {
-    visibleSkills = [
-      ...SKILL_TIERS.entry, ...SKILL_TIERS.junior, ...SKILL_TIERS.mid, ...SKILL_TIERS.senior
-    ]
-  } else {
-    visibleSkills = [...SKILL_TIERS.entry]
-    if (['junior', 'mid', 'senior'].includes(experienceLevel)) visibleSkills.push(...SKILL_TIERS.junior)
-    if (['mid', 'senior'].includes(experienceLevel)) visibleSkills.push(...SKILL_TIERS.mid)
-    if (experienceLevel === 'senior') visibleSkills.push(...SKILL_TIERS.senior)
   }
 
   return (
