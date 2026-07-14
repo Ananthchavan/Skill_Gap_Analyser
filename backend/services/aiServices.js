@@ -3,7 +3,6 @@ import { google } from '@ai-sdk/google';
 import { aiAnalysisSchema } from '../schemas/aiSchema.js';
 import { aiRoadmapSchema } from '../schemas/aiSchema.js';
 import { groq } from '@ai-sdk/groq';
-import { z } from 'zod';
 
 export async function generateAnalysis(analysisData) {
     try {
@@ -95,15 +94,11 @@ export async function generateTechnicalRoadmap(analysisData) {
     }
 }
 
-const extractedSkillsSchema = z.object({
-    skills: z.array(z.string().describe("Clean, concise non-code skill name"))
-});
 
 export async function extractNonCodeableSkills(jobDescription) {
     try {
-        const { output } = await generateText({
+        const { text } = await generateText({
             model: groq('llama-3.3-70b-versatile'),
-            output: Output.object({ schema: extractedSkillsSchema }),
             system: `You are an expert technical recruiter.
             Your task is to analyze a Job Description and extract high-value non-code skills that cannot be auto-detected from repository code files.
 
@@ -112,13 +107,25 @@ export async function extractNonCodeableSkills(jobDescription) {
                - Workflow & Methodologies (e.g., Agile/Scrum, CI/CD, TDD, Microservices)
                - Cloud & Infra Concepts (e.g., AWS Architecture, Containerization)
                - Management & Collaboration Tools (e.g., JIRA, Confluence)
-               - Soft Skills & Engineering Practices (e.g., Code Reviews, Technical Writing, System Design)
-            2. STRICTLY FORBIDDEN: Do NOT extract programming languages, frameworks, or databases (e.g., React, Node.js, Python, PostgreSQL, HTML/CSS). These are auto-detected from code repositories.
-            3. Return 5 to 10 concise, highly relevant skill names (2 to 5 words max per skill).`,
+               - Soft Skills & Engineering Practices (e.g., Code Reviews, Technical Writing)
+            2. STRICTLY FORBIDDEN: Do NOT extract programming languages, frameworks, or databases (e.g., React, Node.js, Python, PostgreSQL).
+            3. Return 5 to 10 concise, highly relevant skill names.
+
+            OUTPUT FORMAT:
+            You MUST output ONLY a valid JSON object. No conversational text. No markdown formatting. No backticks. 
+            The JSON must have a single key "skills" containing an array of strings.
+            Example:
+            {
+              "skills": ["Agile Methodology", "CI/CD Pipeline", "System Design"]
+            }`,
             prompt: `Job Description:\n${jobDescription}`
         });
 
-        return output.skills;
+        const cleanJsonText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const parsedData = JSON.parse(cleanJsonText);
+
+        return parsedData.skills || [];
+
     } catch (error) {
         console.error('Error extracting skills with Groq:', error);
         throw new Error('Failed to scan Job Description for non-code skills.');
