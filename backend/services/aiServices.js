@@ -3,6 +3,7 @@ import { google } from '@ai-sdk/google';
 import { aiAnalysisSchema } from '../schemas/aiSchema.js';
 import { aiRoadmapSchema } from '../schemas/aiSchema.js';
 import { groq } from '@ai-sdk/groq';
+import { z } from 'zod';
 
 export async function generateAnalysis(analysisData) {
     try {
@@ -91,5 +92,35 @@ export async function generateTechnicalRoadmap(analysisData) {
     } catch (error) {
         console.error('Error generating AI Roadmap:', error);
         throw new Error('AI Generation for Roadmap Planner Failed.');
+    }
+}
+
+const extractedSkillsSchema = z.object({
+    skills: z.array(z.string().describe("Clean, concise non-code skill name"))
+});
+
+export async function extractNonCodeableSkills(jobDescription) {
+    try {
+        const { output } = await generateText({
+            model: groq('llama-3.3-70b-versatile'),
+            output: Output.object({ schema: extractedSkillsSchema }),
+            system: `You are an expert technical recruiter.
+            Your task is to analyze a Job Description and extract high-value non-code skills that cannot be auto-detected from repository code files.
+
+            STRICT EXTRACTION RULES:
+            1. ONLY extract:
+               - Workflow & Methodologies (e.g., Agile/Scrum, CI/CD, TDD, Microservices)
+               - Cloud & Infra Concepts (e.g., AWS Architecture, Containerization)
+               - Management & Collaboration Tools (e.g., JIRA, Confluence)
+               - Soft Skills & Engineering Practices (e.g., Code Reviews, Technical Writing, System Design)
+            2. STRICTLY FORBIDDEN: Do NOT extract programming languages, frameworks, or databases (e.g., React, Node.js, Python, PostgreSQL, HTML/CSS). These are auto-detected from code repositories.
+            3. Return 5 to 10 concise, highly relevant skill names (2 to 5 words max per skill).`,
+            prompt: `Job Description:\n${jobDescription}`
+        });
+
+        return output.skills;
+    } catch (error) {
+        console.error('Error extracting skills with Groq:', error);
+        throw new Error('Failed to scan Job Description for non-code skills.');
     }
 }
