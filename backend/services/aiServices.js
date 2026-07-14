@@ -51,11 +51,8 @@ export async function generateTechnicalRoadmap(analysisData) {
         // Calculate the total weekly hours based on their daily input
         const totalWeeklyHours = analysisData.studyHours * 7;
 
-        const { output: roadmapResult } = await generateText({
-            model: groq('llama3-70b-8192'),
-            output: Output.object({
-                schema: aiRoadmapSchema
-            }),
+        const { text: roadmapText } = await generateText({
+            model: groq('llama-3.3-70b-versatile'),
 
             system: `You are an expert Technical Curriculum Engineer and Bootcamp Architect.
             Your job is to generate a highly granular, day-by-day learning schedule tailored precisely to the user's constraints.
@@ -66,7 +63,28 @@ export async function generateTechnicalRoadmap(analysisData) {
                - If weekly hours are low (< 14 hours/week), keep tasks highly focused on syntax and core concepts. Do not overwhelm them.
                - If weekly hours are high (28+ hours/week), increase the density. Include advanced architecture, testing, and deployment tasks.
             3. Actionable & Direct: Focus heavily on closing the missing skills found in their profile relative to the job description. Provide precise technical topics.
-            4. Task Tagging: Every single daily task MUST include an "associatedSkill" tag. This tag must perfectly match the exact spelling of one of the skills listed in the user's profile context below. Do not invent new skill names.`,
+            4. Task Tagging: Every single daily task MUST include an "associatedSkill" tag. This tag must perfectly match the exact spelling of one of the skills listed in the user's profile context below. Do not invent new skill names.
+
+            OUTPUT FORMAT:
+            You MUST output ONLY a valid JSON object. No conversational text. No markdown formatting.
+            The JSON structure MUST perfectly match this schema:
+            {
+              "weeks": [
+                {
+                  "weekNumber": 1,
+                  "weekFocus": "String summarizing the week",
+                  "days": [
+                    {
+                      "dayNumber": 1,
+                      "topics": ["Topic 1", "Topic 2"],
+                      "tasks": [
+                        { "taskDescription": "String", "estimatedHours": 2, "associatedSkill": "Skill Name" }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }`,
 
             prompt: `
                 Target Role: ${analysisData.targetRole}
@@ -87,7 +105,10 @@ export async function generateTechnicalRoadmap(analysisData) {
             `,
         });
 
-        return roadmapResult;
+        const cleanJsonText = roadmapText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const parsedRoadmap = JSON.parse(cleanJsonText);
+
+        return parsedRoadmap;
     } catch (error) {
         console.error('Error generating AI Roadmap:', error);
         throw new Error('AI Generation for Roadmap Planner Failed.');
