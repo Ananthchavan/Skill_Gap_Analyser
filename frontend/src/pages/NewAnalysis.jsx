@@ -79,6 +79,9 @@ export default function NewAnalysis() {
   const [errors, setErrors] = useState({})
   const [successData, setSuccessData] = useState(null)
   const [selfAttestedSkills, setSelfAttestedSkills] = useState([])
+  const [extractedSkills, setExtractedSkills] = useState([])
+  const [isScanningSkills, setIsScanningSkills] = useState(false)
+  const [scanError, setScanError] = useState('')
 
   const fileInputRef = useRef(null)
 
@@ -139,6 +142,41 @@ export default function NewAnalysis() {
     if (!experienceLevel) e.experienceLevel = 'Please select your experience level.'
     if (!jobDescription.trim()) e.jobDescription = 'Please paste the job description.'
     return e
+  }
+
+  const handleScanJobDescription = async () => {
+    if (!jobDescription || jobDescription.trim().length < 20) {
+      setErrors((p) => ({
+        ...p,
+        jobDescription: 'Please paste a valid Job Description (at least 20 characters) before scanning.'
+      }))
+      return
+    }
+
+    setErrors((p) => ({ ...p, jobDescription: undefined }))
+    setScanError('')
+    setIsScanningSkills(true)
+
+    try {
+      const res = await fetch('http://localhost:8080/api/analysis/extract-skills', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobDescription }),
+        credentials: 'include'
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to extract skills.')
+      }
+
+      setExtractedSkills(data.skills || [])
+    } catch (err) {
+      setScanError(err.message || 'Error connecting to backend server.')
+    } finally {
+      setIsScanningSkills(false)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -483,44 +521,54 @@ export default function NewAnalysis() {
                   <p className="mt-1.5 text-xs text-red-500">{errors.resume}</p>
                 )}
               </div>
+
               <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-800">
-                <div className="flex justify-between items-end mb-3">
+                <div className="flex justify-between items-end mb-1">
                   <FieldLabel htmlFor="unscrapableSkills">
                     Self-Attested Skills (Optional)
                   </FieldLabel>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-                  AI cannot reliably detect certain workflow or infrastructure skills just from reading code files. Select any skills you possess below so the AI does not falsely mark them as "Missing".
+                  AI cannot reliably detect certain workflow or infrastructure skills from code files alone.
+                  Select any skills below extracted from the Job Description that you possess.
                 </p>
 
-                <div className="flex flex-wrap gap-2.5 transition-all">
-                  {visibleSkills.map((skill) => {
-                    const isSelected = selfAttestedSkills.includes(skill);
-                    return (
-                      <button
-                        key={skill}
-                        type="button"
-                        onClick={() => {
-                          setSelfAttestedSkills(prev =>
-                            isSelected
-                              ? prev.filter(s => s !== skill)
-                              : [...prev, skill]
-                          )
-                        }}
-                        className={`
-                          px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-200
-                          ${isSelected
-                            ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300 shadow-sm'
-                            : 'bg-white border-gray-200 text-slate-600 hover:border-indigo-300 hover:bg-indigo-50/50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:border-indigo-500/50'
-                          }
-                        `}
-                      >
-                        {isSelected && <CheckCircle2 className="w-3 h-3 inline-block mr-1.5 -mt-0.5" />}
-                        {skill}
-                      </button>
-                    )
-                  })}
-                </div>
+                {extractedSkills.length > 0 ? (
+                  <div className="flex flex-wrap gap-2.5 transition-all">
+                    {extractedSkills.map((skill) => {
+                      const isSelected = selfAttestedSkills.includes(skill);
+                      return (
+                        <button
+                          key={skill}
+                          type="button"
+                          onClick={() => {
+                            setSelfAttestedSkills((prev) =>
+                              isSelected
+                                ? prev.filter((s) => s !== skill)
+                                : [...prev, skill]
+                            )
+                          }}
+                          className={`
+                            px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-200
+                            ${isSelected
+                              ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300 shadow-sm'
+                              : 'bg-white border-gray-200 text-slate-600 hover:border-indigo-300 hover:bg-indigo-50/50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:border-indigo-500/50'
+                            }
+                          `}
+                        >
+                          {isSelected && <CheckCircle2 className="w-3 h-3 inline-block mr-1.5 -mt-0.5" />}
+                          {skill}
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-4 border border-dashed border-gray-200 dark:border-slate-800 rounded-xl text-center">
+                    <p className="text-xs text-slate-400 dark:text-slate-500">
+                      Paste a Job Description below and click <strong>"Scan JD for Non-Code Skills"</strong> to extract relevant workflow pills.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -549,7 +597,7 @@ export default function NewAnalysis() {
                     }`}
                   aria-describedby={errors.jobDescription ? 'jd-error' : undefined}
                 />
-                <div className="flex items-center justify-between mt-1.5">
+                <div className="flex items-center justify-between mt-2">
                   {errors.jobDescription ? (
                     <p id="jd-error" className="text-xs text-red-500">
                       {errors.jobDescription}
@@ -560,6 +608,32 @@ export default function NewAnalysis() {
                   <span className="text-xs text-slate-400 dark:text-slate-500 ml-auto">
                     {jobDescription.length} chars
                   </span>
+                </div>
+
+                {/* GROQ AI SCAN BUTTON */}
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleScanJobDescription}
+                    disabled={isScanningSkills || !jobDescription.trim()}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-xs font-semibold border border-indigo-200 dark:border-indigo-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isScanningSkills ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Scanning Job Description...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5" />
+                        Scan JD for Non-Code Skills
+                      </>
+                    )}
+                  </button>
+
+                  {scanError && (
+                    <p className="text-xs text-red-500">{scanError}</p>
+                  )}
                 </div>
               </div>
             </div>
