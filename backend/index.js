@@ -181,6 +181,23 @@ app.post('/api/analysis/new', upload.single('resume'), async (req, res) => {
     }
 });
 
+//NON-CODE SKILLS EXTRACTION
+app.post('/api/analysis/extract-skills', async (req, res) => {
+    try {
+        const { jobDescription } = req.body;
+
+        if (!jobDescription || jobDescription.trim().length < 20) {
+            return res.status(400).json({ error: 'Please enter a valid Job Description before scanning.' });
+        }
+
+        const skills = await extractNonCodeableSkills(jobDescription);
+        return res.status(200).json({ skills });
+    } catch (error) {
+        console.error('Error in /api/analysis/extract-skills:', error);
+        return res.status(500).json({ error: 'Failed to extract skills from Job Description.' });
+    }
+});
+
 //VIEW DETAILS ROUTE
 app.get('/api/analysis/:id', async (req, res) => {
     try {
