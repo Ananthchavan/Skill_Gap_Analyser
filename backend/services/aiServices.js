@@ -56,15 +56,15 @@ export async function generateTechnicalRoadmap(analysisData) {
 
             system: `You are an expert Technical Curriculum Engineer and Bootcamp Architect.
             Your job is to generate a highly granular, day-by-day learning schedule tailored precisely to the user's constraints.
-            
             CRITICAL CONSTRAINTS:
             1. Total Duration: You MUST generate exactly ${analysisData.weeksDuration} weeks of content.
             2. Weekly Time Budget: The user has exactly ${totalWeeklyHours} hours available in a week (roughly ${analysisData.studyHours} hours/day).
                - If weekly hours are low (< 14 hours/week), keep tasks highly focused on syntax and core concepts. Do not overwhelm them.
                - If weekly hours are high (28+ hours/week), increase the density. Include advanced architecture, testing, and deployment tasks.
-            3. Actionable & Direct: Focus heavily on closing the missing skills found in their profile relative to the job description. Provide precise technical topics.
+            3. The 80/20 Hybrid Focus: 
+               - Allocate 80% of the roadmap tasks to learning the user's MISSING skills. 
+               - Allocate 20% of the roadmap tasks to high-intensity interview prep, algorithmic practice, and rapid refreshers for their EXISTING skills. Do NOT teach existing skills from scratch.
             4. Task Tagging: Every single daily task MUST include an "associatedSkill" tag. This tag must perfectly match the exact spelling of one of the skills listed in the user's profile context below. Do not invent new skill names.
-
             OUTPUT FORMAT:
             You MUST output ONLY a valid JSON object. No conversational text. No markdown formatting.
             The JSON structure MUST perfectly match this schema:
