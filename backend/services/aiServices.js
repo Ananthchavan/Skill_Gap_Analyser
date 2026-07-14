@@ -2,6 +2,7 @@ import { generateText, Output } from 'ai';
 import { google } from '@ai-sdk/google';
 import { aiAnalysisSchema } from '../schemas/aiSchema.js';
 import { aiRoadmapSchema } from '../schemas/aiSchema.js';
+import { groq } from '@ai-sdk/groq';
 
 export async function generateAnalysis(analysisData) {
     try {
@@ -51,7 +52,7 @@ export async function generateTechnicalRoadmap(analysisData) {
         const totalWeeklyHours = analysisData.studyHours * 7;
 
         const { output: roadmapResult } = await generateText({
-            model: google('gemini-2.5-flash'),
+            model: groq('llama3-70b-8192'),
             output: Output.object({
                 schema: aiRoadmapSchema
             }),
