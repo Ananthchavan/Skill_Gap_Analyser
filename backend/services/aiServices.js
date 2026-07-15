@@ -65,6 +65,9 @@ export async function generateTechnicalRoadmap(analysisData) {
                - Allocate 80% of the roadmap tasks to learning the user's MISSING skills. 
                - Allocate 20% of the roadmap tasks to high-intensity interview prep, algorithmic practice, and rapid refreshers for their EXISTING skills. Do NOT teach existing skills from scratch.
             4. Task Tagging: Every single daily task MUST include an "associatedSkill" tag. This tag must perfectly match the exact spelling of one of the skills listed in the user's profile context below. Do not invent new skill names.
+            5. Adaptive Pacing & Scope Triage (CRITICAL): You must balance the size of the skill gap against the total time available.
+               - TIME DEFICIT (Huge Gap + Low Time): Act as a ruthless crash course. Triage the curriculum. Focus ONLY on the absolute bare minimum concepts needed to survive a technical screen. Skip complex projects.
+               - TIME SURPLUS (Small Gap + High Time): DO NOT pad the schedule with fluff or stretch basic tutorials. Pivot immediately to advanced mastery: building production-ready projects, deep architectural patterns, and rigorous LeetCode/Mock Interview practice.
             OUTPUT FORMAT:
             You MUST output ONLY a valid JSON object. No conversational text. No markdown formatting.
             The JSON structure MUST perfectly match this schema:
