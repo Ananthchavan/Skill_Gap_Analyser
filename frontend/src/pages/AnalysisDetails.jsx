@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Map, ArrowRight, Target, CircleDashed } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import useThemeStore from '../store/useThemeStore';
 import {
@@ -305,6 +306,96 @@ export default function AnalysisDetails() {
                         </div>
                     </div>
 
+                </div>
+                {/* <=================ROADMAP PROGRESS=============> */}
+                <div className="mt-6 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm p-6 sm:p-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+
+                        {/* Left Side: Missing Skills Progress Tracker */}
+                        <div className="flex-1 w-full">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
+                                    <Target className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Skill Gap Closure</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">Track your roadmap progress for missing requirements.</p>
+                                </div>
+                            </div>
+
+                            <div className="mt-6">
+                                <div className="flex justify-between items-end mb-2.5">
+                                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Overall Roadmap Progress</span>
+                                    <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">0%</span>
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div className="w-full h-2.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-500"
+                                        style={{ width: '0%' }}
+                                    />
+                                </div>
+
+                                {/* Dynamic Missing Skills Targets */}
+                                <div className="mt-6 pt-5 border-t border-gray-100 dark:border-slate-800">
+                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 block">
+                                        Target Skills to Master:
+                                    </span>
+
+                                    {(!criticalMissingSkills || criticalMissingSkills.length === 0) ? (
+                                        <span className="text-xs font-medium text-emerald-500 mt-1">None! Ready for the interview.</span>
+                                    ) : (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {criticalMissingSkills.map((skill, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 hover:border-indigo-100 dark:hover:border-indigo-900/50 transition-colors"
+                                                >
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate pr-2">
+                                                            {skill.skillName}
+                                                        </span>
+                                                        <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
+                                                            0%
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-full h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full transition-all duration-500"
+                                                            style={{ width: '0%' }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Side: Launch Roadmap Button */}
+                        <div className="flex-shrink-0 md:pl-8 md:border-l border-gray-100 dark:border-slate-800 flex flex-col justify-center items-center">
+                            <Link
+                                to={`/dashboard/${id}/roadmap`}
+                                className="
+                                    w-full md:w-auto inline-flex items-center justify-center gap-2 
+                                    px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl 
+                                    shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 
+                                    transition-all duration-200 active:scale-95 
+                                    focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2
+                                "
+                            >
+                                <Map className="w-5 h-5" />
+                                Open 30-Day Roadmap
+                                <ArrowRight className="w-5 h-5 ml-1" />
+                            </Link>
+                            <p className="mt-3 text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                Your personalized curriculum is ready.
+                            </p>
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </div>
