@@ -7,7 +7,6 @@ import Dashboard from './pages/Dashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import AnalysisDetails from './pages/AnalysisDetails.jsx';
 import AuthCallback from './pages/AuthCallback.jsx';
-import RoadMap from './pages/RoadMap.jsx';
 
 export default function App() {
   return (
@@ -46,14 +45,6 @@ export default function App() {
           }
         />
 
-        <Route
-          path="/dashboard/:id/roadmap"
-          element={
-            <ProtectedRoute>
-              <RoadMap />
-            </ProtectedRoute>
-          }
-        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
