@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import AnalysisDetails from './pages/AnalysisDetails.jsx';
 import AuthCallback from './pages/AuthCallback.jsx';
+import RoadmapTimelinePage from './pages/RoadmapTimelinePage.jsx';
 
 export default function App() {
   return (
@@ -41,6 +42,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <AnalysisDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard/:id/roadmap"
+          element={
+            <ProtectedRoute>
+              <RoadmapTimelinePage />
             </ProtectedRoute>
           }
         />
