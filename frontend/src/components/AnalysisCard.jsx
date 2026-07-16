@@ -1,29 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 
-const calculateTrueMatch = (assessedSkills = [], missingSkills = []) => {
-    let totalScore = 0;
-    const totalSkills = assessedSkills.length + missingSkills.length;
-
-    if (totalSkills === 0) return 0;
-
-    assessedSkills.forEach(skill => {
-        if (skill.currentLevel >= skill.targetLevel) {
-            totalScore += 100;
-        } else {
-            totalScore += (skill.currentLevel / skill.targetLevel) * 100;
-        }
-    });
-
-    return Math.round(totalScore / totalSkills);
-};
-
 export default function AnalysisCard({ data }) {
     const isProcessing = data.status === 'processing';
-    const matchScore = calculateTrueMatch(
-        data.aiAnalysis?.assessedSkills || [],
-        data.aiAnalysis?.criticalMissingSkills || []
-    );
+    const matchScore = data.aiAnalysis?.overallMatch || 0;
 
     const dateFormatted = new Date(data.createdAt).toLocaleDateString('en-US', {
         month: 'short', day: 'numeric', year: 'numeric'
