@@ -1,56 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Map, ArrowRight, Target, CircleDashed } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import useThemeStore from '../store/useThemeStore';
+import useRoadmapStore from '../store/useRoadmapStore';
 import {
     Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer,
     BarChart, Bar, XAxis, YAxis,
     ComposedChart, Line, Tooltip, Legend, CartesianGrid
 } from 'recharts';
 
-const calculateTrueMatch = (assessedSkills = [], missingSkills = []) => {
-    let totalScore = 0;
-    const totalSkills = assessedSkills.length + missingSkills.length;
-
-    if (totalSkills === 0) return 0;
-
-    assessedSkills.forEach(skill => {
-        if (skill.currentLevel >= skill.targetLevel) {
-            totalScore += 100;
-        } else {
-            totalScore += (skill.currentLevel / skill.targetLevel) * 100;
-        }
-    });
-
-    return Math.round(totalScore / totalSkills);
-};
-
 export default function AnalysisDetails() {
     const { id } = useParams();
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
     const { isDark } = useThemeStore();
 
-    useEffect(() => {
-        const fetchDetails = async () => {
-            try {
-                const res = await fetch(`http://localhost:8080/api/analysis/${id}`, {
-                    credentials: 'include'
-                });
-                if (!res.ok) throw new Error('Failed to fetch data');
-                const result = await res.json();
-                setData(result);
-            } catch (error) {
-                console.error("Fetch error:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchDetails();
-    }, [id]);
+    // Wire up Zustand
+    const { data, isLoading, fetchAnalysis, progressData } = useRoadmapStore();
 
-    if (loading) {
+    useEffect(() => {
+        fetchAnalysis(id);
+    }, [id, fetchAnalysis]);
+
+    if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -64,9 +35,11 @@ export default function AnalysisDetails() {
         </div>
     );
 
-    const { assessedSkills, criticalMissingSkills } = data.aiAnalysis;
+    // Extract raw data from DB
+    const { assessedSkills, criticalMissingSkills, overallMatch } = data.aiAnalysis;
 
-    const trueOverallMatch = calculateTrueMatch(assessedSkills, criticalMissingSkills || []);
+    // Use dynamic data from Zustand for the Roadmap Progress UI
+    const { overallProgress, missingSkillsProgress } = progressData;
 
     const radarData = assessedSkills.map(skill => ({
         subject: skill.skillName,
@@ -80,7 +53,7 @@ export default function AnalysisDetails() {
         Required: skill.targetLevel
     }));
 
-    //dynamic colors based on theme
+    // dynamic colors based on theme
     const radarTickColor = isDark ? '#94A3B8' : '#6B7280';
     const gridColor = isDark ? '#1E293B' : '#F1F5F9';
     const xAxisColor = isDark ? '#94A3B8' : '#64748B';
@@ -165,19 +138,19 @@ export default function AnalysisDetails() {
                                         strokeWidth="18"
                                         strokeLinecap="round"
                                         strokeDasharray="251.3"
-                                        strokeDashoffset={251.3 - (251.3 * trueOverallMatch) / 100}
+                                        strokeDashoffset={251.3 - (251.3 * (overallMatch || 0)) / 100}
                                         className="transition-all duration-1000 ease-out"
                                     />
                                 </svg>
                                 <div className="absolute bottom-2 flex flex-col items-center">
                                     <span className="text-[34px] font-extrabold text-slate-900 dark:text-slate-100 leading-none tracking-tight">
-                                        {trueOverallMatch}%
+                                        {overallMatch || 0}%
                                     </span>
                                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Overall Skill Match</span>
                                 </div>
                             </div>
                             <div className="mt-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-xs font-semibold px-4 py-1 rounded-full">
-                                Gap: {100 - trueOverallMatch}%
+                                Gap: {100 - (overallMatch || 0)}%
                             </div>
                         </div>
 
@@ -307,6 +280,7 @@ export default function AnalysisDetails() {
                     </div>
 
                 </div>
+
                 {/* <=================ROADMAP PROGRESS=============> */}
                 <div className="mt-6 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm p-6 sm:p-8">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -326,14 +300,14 @@ export default function AnalysisDetails() {
                             <div className="mt-6">
                                 <div className="flex justify-between items-end mb-2.5">
                                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Overall Roadmap Progress</span>
-                                    <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">0%</span>
+                                    <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{Math.round(overallProgress)}%</span>
                                 </div>
 
                                 {/* Progress Bar */}
                                 <div className="w-full h-2.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                     <div
                                         className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-500"
-                                        style={{ width: '0%' }}
+                                        style={{ width: `${overallProgress}%` }}
                                     />
                                 </div>
 
@@ -343,31 +317,35 @@ export default function AnalysisDetails() {
                                         Target Skills to Master:
                                     </span>
 
-                                    {(!criticalMissingSkills || criticalMissingSkills.length === 0) ? (
+                                    {(!missingSkillsProgress || missingSkillsProgress.length === 0) ? (
                                         <span className="text-xs font-medium text-emerald-500 mt-1">None! Ready for the interview.</span>
                                     ) : (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            {criticalMissingSkills.map((skill, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 hover:border-indigo-100 dark:hover:border-indigo-900/50 transition-colors"
-                                                >
-                                                    <div className="flex justify-between items-center mb-2">
-                                                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate pr-2">
-                                                            {skill.skillName}
-                                                        </span>
-                                                        <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
-                                                            0%
-                                                        </span>
+                                            {missingSkillsProgress.map((skill, idx) => {
+                                                const widthPercentage = (skill.currentLevel / skill.targetLevel) * 100;
+
+                                                return (
+                                                    <div
+                                                        key={idx}
+                                                        className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 hover:border-indigo-100 dark:hover:border-indigo-900/50 transition-colors"
+                                                    >
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate pr-2">
+                                                                {skill.skillName}
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
+                                                                {Math.round(widthPercentage)}%
+                                                            </span>
+                                                        </div>
+                                                        <div className="w-full h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full transition-all duration-500"
+                                                                style={{ width: `${widthPercentage}%` }}
+                                                            />
+                                                        </div>
                                                     </div>
-                                                    <div className="w-full h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                        <div
-                                                            className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full transition-all duration-500"
-                                                            style={{ width: '0%' }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                )
+                                            })}
                                         </div>
                                     )}
                                 </div>
