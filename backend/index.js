@@ -222,6 +222,40 @@ app.get('/api/analysis/:id', async (req, res) => {
     }
 });
 
+//ROUTE (Silent Background Sync)
+app.patch('/api/analysis/:id/progress', async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const { completedTaskIds } = req.body;
+
+        if (!Array.isArray(completedTaskIds)) {
+            return res.status(400).json({ error: 'completedTaskIds must be an array' });
+        }
+
+        const updatedAnalysis = await Analysis.findOneAndUpdate(
+            { _id: req.params.id, user: req.user._id },
+            { $set: { completedTaskIds: completedTaskIds } },
+            { new: true }
+        );
+
+        if (!updatedAnalysis) {
+            return res.status(404).json({ error: 'Analysis not found' });
+        }
+
+        res.status(200).json({
+            success: true,
+            completedTaskIds: updatedAnalysis.completedTaskIds
+        });
+
+    } catch (error) {
+        console.error('Error updating roadmap progress:', error);
+        res.status(500).json({ error: 'Failed to save progress' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(` Server listening on http://localhost:${PORT}`);
 });
