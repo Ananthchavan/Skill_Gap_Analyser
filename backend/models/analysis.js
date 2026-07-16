@@ -56,6 +56,10 @@ const analysisSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.Mixed,
         default: null,
     },
+    completedTaskIds: {
+        type: [String],
+        default: []
+    },
 }, { timestamps: true });
 
 const Analysis = mongoose.model('Analysis', analysisSchema);
