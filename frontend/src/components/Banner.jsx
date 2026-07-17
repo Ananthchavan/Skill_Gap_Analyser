@@ -65,7 +65,6 @@ export default function Banner() {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-indigo-700 via-violet-800 to-purple-900 py-16 px-4">
-      {/* network background */}
       <NetworkBg />
 
       <div className="relative z-10 max-w-3xl mx-auto text-center">
@@ -83,7 +82,7 @@ export default function Banner() {
                      transition-all duration-200 backdrop-blur-sm
                      disabled:opacity-60 disabled:cursor-wait"
         >
-          Start Your 30-Day Plan Now
+          Start Your Personalized Road-map
         </button>
       </div>
     </section>
