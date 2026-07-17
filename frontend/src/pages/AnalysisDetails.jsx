@@ -248,8 +248,25 @@ export default function AnalysisDetails() {
                                         dataKey="name"
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fill: xAxisColor, fontSize: 10, fontWeight: 500 }}
+                                        interval={0}
                                         dy={10}
+                                        tick={({ x, y, payload }) => {
+                                            const full = payload.value;
+                                            const short = full.length > 12 ? full.slice(0, 11) + '…' : full;
+                                            return (
+                                                <g transform={`translate(${x},${y})`}>
+                                                    <title>{full}</title>
+                                                    <text
+                                                        textAnchor="middle"
+                                                        fill={xAxisColor}
+                                                        fontSize={10}
+                                                        fontWeight={500}
+                                                    >
+                                                        {short}
+                                                    </text>
+                                                </g>
+                                            );
+                                        }}
                                     />
                                     <YAxis
                                         domain={[0, 100]}
