@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
 
 /* ─── tiny animated flow-line SVG ─── */
 function FlowArrow() {
@@ -14,11 +15,11 @@ function FlowArrow() {
 /* ─── Job card chip ─── */
 function SkillChip({ label, color }) {
   const colors = {
-    python:  'bg-blue-100 text-blue-700',
-    ml:      'bg-yellow-100 text-yellow-700',
-    react:   'bg-cyan-100  text-cyan-700',
+    python: 'bg-blue-100 text-blue-700',
+    ml: 'bg-yellow-100 text-yellow-700',
+    react: 'bg-cyan-100  text-cyan-700',
     keyword: 'bg-green-100 text-green-700',
-    aws:     'bg-orange-100 text-orange-700',
+    aws: 'bg-orange-100 text-orange-700',
   }
   return (
     <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${colors[color] ?? 'bg-slate-100 text-slate-600'}`}>
@@ -67,12 +68,32 @@ function DayPill({ label, checked, color = 'indigo' }) {
 
 export default function HeroSection() {
   const [progressWidth, setProgressWidth] = useState(0)
+  const { user, loading: authLoading } = useAuth()
+  const navigate = useNavigate()
 
   /* animate the progress bar once on mount */
   useEffect(() => {
     const t = setTimeout(() => setProgressWidth(72), 300)
     return () => clearTimeout(t)
   }, [])
+
+  const handleGetStarted = async () => {
+    if (authLoading) return
+    if (!user) {
+      navigate('/signup')
+      return
+    }
+    // User is logged in – check if they already have analyses
+    try {
+      const res = await fetch('http://localhost:8080/api/analysis/dashboard', {
+        credentials: 'include',
+      })
+      const data = res.ok ? await res.json() : []
+      navigate(data.length > 0 ? '/dashboard' : '/NewAnalysis')
+    } catch {
+      navigate('/NewAnalysis')
+    }
+  }
 
   return (
     <section
@@ -103,12 +124,13 @@ export default function HeroSection() {
             a personalized, day-by-day learning roadmap.
           </p>
 
-          <Link
-            to="/signup"
-            className="inline-block bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold text-sm px-8 py-3 rounded-lg transition-all duration-200 shadow-lg shadow-indigo-200 dark:shadow-indigo-900/40"
+          <button
+            onClick={handleGetStarted}
+            disabled={authLoading}
+            className="inline-block bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold text-sm px-8 py-3 rounded-lg transition-all duration-200 shadow-lg shadow-indigo-200 dark:shadow-indigo-900/40 disabled:opacity-60 disabled:cursor-wait"
           >
             Get Started
-          </Link>
+          </button>
         </div>
 
         {/* ── RIGHT: Visual mockup ── */}
@@ -122,7 +144,7 @@ export default function HeroSection() {
               {/* GitHub card */}
               <div className="bg-white rounded-2xl shadow-xl p-3 flex flex-col items-center gap-1 w-20 h-20 justify-center border border-gray-100 flex-shrink-0">
                 <svg viewBox="0 0 24 24" className="w-10 h-10 text-slate-900" fill="currentColor">
-                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
                 </svg>
                 <div className="w-8 h-1 bg-slate-200 rounded-full" />
               </div>
@@ -133,9 +155,9 @@ export default function HeroSection() {
               <div className="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-4 flex items-center justify-center w-20 h-20 border border-white/60 flex-shrink-0">
                 <svg viewBox="0 0 64 64" className="w-12 h-12" fill="none">
                   {/* Big gear */}
-                  <circle cx="22" cy="38" r="11" fill="none" stroke="#6366f1" strokeWidth="3"/>
-                  <circle cx="22" cy="38" r="4" fill="#6366f1"/>
-                  {[0,45,90,135,180,225,270,315].map((deg, i) => (
+                  <circle cx="22" cy="38" r="11" fill="none" stroke="#6366f1" strokeWidth="3" />
+                  <circle cx="22" cy="38" r="4" fill="#6366f1" />
+                  {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => (
                     <rect
                       key={i}
                       x="20" y="24"
@@ -146,9 +168,9 @@ export default function HeroSection() {
                     />
                   ))}
                   {/* Small gear */}
-                  <circle cx="42" cy="24" r="8" fill="none" stroke="#a855f7" strokeWidth="2.5"/>
-                  <circle cx="42" cy="24" r="3" fill="#a855f7"/>
-                  {[0,60,120,180,240,300].map((deg, i) => (
+                  <circle cx="42" cy="24" r="8" fill="none" stroke="#a855f7" strokeWidth="2.5" />
+                  <circle cx="42" cy="24" r="3" fill="#a855f7" />
+                  {[0, 60, 120, 180, 240, 300].map((deg, i) => (
                     <rect
                       key={i}
                       x="40.5" y="13"
@@ -214,7 +236,7 @@ export default function HeroSection() {
               <p className="text-[11px] font-bold text-slate-800 mb-2">Personalized Roadmap</p>
               {/* Calendar header */}
               <div className="grid grid-cols-7 gap-1 text-[8px] font-semibold text-slate-400 text-center mb-2">
-                {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
                   <span key={d}>{d}</span>
                 ))}
               </div>
