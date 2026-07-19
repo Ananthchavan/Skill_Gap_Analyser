@@ -27,6 +27,20 @@ export default function Dashboard() {
         fetchDashboard();
     }, []);
 
+    const handleDelete = async (id) => {
+        try {
+            const res = await fetch(`http://localhost:8080/api/analysis/${id}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
+            if (!res.ok) throw new Error('Failed to delete');
+            setAnalyses((prev) => prev.filter((a) => a._id !== id));
+        } catch (error) {
+            console.error('Delete failed:', error);
+            alert('Failed to delete analysis. Please try again.');
+        }
+    };
+
     const filtered = analyses.filter((a) =>
         a.targetRole?.toLowerCase().includes(search.toLowerCase())
     );
@@ -100,7 +114,7 @@ export default function Dashboard() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
                         {filtered.map((analysis) => (
-                            <AnalysisCard key={analysis._id} data={analysis} />
+                            <AnalysisCard key={analysis._id} data={analysis} onDelete={handleDelete} />
                         ))}
 
                         <Link
