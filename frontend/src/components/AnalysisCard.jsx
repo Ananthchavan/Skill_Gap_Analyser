@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
+import { Trash2 } from 'lucide-react';
 
-export default function AnalysisCard({ data }) {
+export default function AnalysisCard({ data, onDelete }) {
     const isProcessing = data.status === 'processing';
     const matchScore = data.aiAnalysis?.overallMatch || 0;
 
@@ -23,22 +24,39 @@ export default function AnalysisCard({ data }) {
 
             <div className="flex justify-between items-start mb-4">
                 <div>
-                    {isProcessing ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400">
-                            <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
-                            Processing Analysis
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                            Active
-                        </span>
-                    )}
+                    <div className="flex items-center gap-3">
+                        {isProcessing ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400">
+                                <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
+                                Processing Analysis
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                Active
+                            </span>
+                        )}
+
+                        {/*delete Button */}
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (window.confirm("Are you sure you want to delete this analysis?")) {
+                                    onDelete(data._id);
+                                }
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-colors relative z-20"
+                            title="Delete Analysis"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    </div>
+
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mt-3">{data.targetRole}</h2>
                     <p className="text-sm text-gray-500 dark:text-slate-400">{dateFormatted}</p>
                 </div>
 
-                <div className="w-24 h-24 absolute top-4 right-4 opacity-80">
+                <div className="w-24 h-24 absolute top-4 right-4 opacity-80 z-10">
                     {!isProcessing && chartData.length > 0 && (
                         <ResponsiveContainer width="100%" height="100%">
                             <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
@@ -60,7 +78,7 @@ export default function AnalysisCard({ data }) {
                 ))}
             </div>
 
-            <div className="mt-auto pt-4 border-t border-gray-100 dark:border-slate-800">
+            <div className="mt-auto pt-4 border-t border-gray-100 dark:border-slate-800 z-10">
                 {isProcessing ? (
                     <div className="text-sm text-gray-500 dark:text-slate-400 italic text-center">AI is analyzing your profile...</div>
                 ) : (
