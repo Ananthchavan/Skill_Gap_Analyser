@@ -133,27 +133,17 @@ const useRoadmapStore = create((set, get) => ({
         });
 
         //re-calculate true overall match for the donut chart
-        let totalScore = 0;
+        const aiBaseScore = data.aiAnalysis.overallMatch || 0;
 
-        //combine assessed skills and missing skills for the final math
-        const allSkillsToScore = [...dynamicAssessedSkills, ...missingSkillsProgress];
-        const totalSkillsToScore = allSkillsToScore.length;
+        // Find out exactly how much room is left to grow to reach 100%
+        const remainingGap = 100 - aiBaseScore;
 
-        allSkillsToScore.forEach(skill => {
-            //ensure targetLevel exists and isn't 0
-            const target = skill.targetLevel || 100;
+        // Scale the gap by the overall percentage of the roadmap completed
+        const progressMultiplier = overallProgress / 100;
 
-            if (skill.currentLevel >= target) {
-                totalScore += 100; // Cap at 100% contribution if they meet or exceed target
-            } else {
-                totalScore += (skill.currentLevel / target) * 100;
-            }
-        });
+        const trueOverallMatch = Math.round(aiBaseScore + (remainingGap * progressMultiplier));
 
-        //calculate the exact match percentage based on the current state of ALL skills
-        const trueOverallMatch = totalSkillsToScore === 0 ? 0 : Math.round(totalScore / totalSkillsToScore);
-
-        //update the store
+        // Update the store
         set({
             progressData: {
                 overallProgress,
