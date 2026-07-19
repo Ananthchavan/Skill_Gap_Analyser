@@ -35,19 +35,22 @@ export default function AnalysisDetails() {
         </div>
     );
 
-    // Extract raw data from DB
-    const { assessedSkills, criticalMissingSkills, overallMatch } = data.aiAnalysis;
+    // Extract FULLY DYNAMIC data from Zustand for ALL UI elements
+    const {
+        overallProgress,
+        missingSkillsProgress,
+        dynamicAssessedSkills,
+        trueOverallMatch
+    } = progressData;
 
-    // Use dynamic data from Zustand for the Roadmap Progress UI
-    const { overallProgress, missingSkillsProgress } = progressData;
-
-    const radarData = assessedSkills.map(skill => ({
+    // Use dynamic array for all charts
+    const radarData = dynamicAssessedSkills.map(skill => ({
         subject: skill.skillName,
         Level: skill.currentLevel,
         fullMark: 100,
     }));
 
-    const proficiencyData = assessedSkills.map(skill => ({
+    const proficiencyData = dynamicAssessedSkills.map(skill => ({
         name: skill.skillName,
         Proficiency: skill.currentLevel,
         Required: skill.targetLevel
@@ -110,7 +113,7 @@ export default function AnalysisDetails() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-                    {/* left: radar chart */}
+                    {/* left: radar chart (DYNAMIC) */}
                     <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex flex-col min-h-[340px]">
                         <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">Skill Gap Radar</h2>
                         <div className="flex-1 w-full relative">
@@ -126,7 +129,7 @@ export default function AnalysisDetails() {
 
                     <div className="space-y-5">
 
-                        {/* right top: svg half-donut */}
+                        {/* right top: svg half-donut (DYNAMIC) */}
                         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex flex-col items-center justify-center min-h-[200px]">
                             <div className="relative flex flex-col items-center justify-center w-full max-w-[210px] pt-2">
                                 <svg viewBox="0 0 200 110" className="w-full drop-shadow-sm overflow-visible">
@@ -138,27 +141,27 @@ export default function AnalysisDetails() {
                                         strokeWidth="18"
                                         strokeLinecap="round"
                                         strokeDasharray="251.3"
-                                        strokeDashoffset={251.3 - (251.3 * (overallMatch || 0)) / 100}
+                                        strokeDashoffset={251.3 - (251.3 * trueOverallMatch) / 100}
                                         className="transition-all duration-1000 ease-out"
                                     />
                                 </svg>
                                 <div className="absolute bottom-2 flex flex-col items-center">
                                     <span className="text-[34px] font-extrabold text-slate-900 dark:text-slate-100 leading-none tracking-tight">
-                                        {overallMatch || 0}%
+                                        {trueOverallMatch}%
                                     </span>
                                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Overall Skill Match</span>
                                 </div>
                             </div>
-                            <div className="mt-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-xs font-semibold px-4 py-1 rounded-full">
-                                Gap: {100 - (overallMatch || 0)}%
+                            <div className="mt-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-xs font-semibold px-4 py-1 rounded-full transition-all">
+                                Gap: {100 - trueOverallMatch}%
                             </div>
                         </div>
 
-                        {/*right bottom: stacked bars */}
+                        {/*right bottom: stacked bars (DYNAMIC) */}
                         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-5">
                             <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">Skill Proficiency & Gaps</h2>
                             <div className="grid grid-cols-2 gap-x-3 gap-y-3">
-                                {assessedSkills.map((skill, idx) => {
+                                {dynamicAssessedSkills.map((skill, idx) => {
                                     const current = skill.currentLevel;
                                     const target = skill.targetLevel;
                                     const trueGap = Math.max(0, target - current);
@@ -202,41 +205,70 @@ export default function AnalysisDetails() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-                    {/* missing skills */}
+                    {/* missing skills (DYNAMIC THRESHOLDS) */}
                     <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-5">
-                        <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">Top Missing Skills (Gap)</h2>
+                        <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">Target Skills to Master</h2>
 
-                        {(!criticalMissingSkills || criticalMissingSkills.length === 0) ? (
-                            <div className="flex items-center justify-center h-24 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg font-medium text-xs">
-                                No critical skills missing!
-                            </div>
-                        ) : (
-                            <div className="space-y-3">
-                                {criticalMissingSkills.map((skill, idx) => {
-                                    let badgeColor = "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300";
-                                    if (skill.importance === 'High') badgeColor = "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400";
-                                    if (skill.importance === 'Medium') badgeColor = "bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400";
-                                    if (skill.importance === 'Low') badgeColor = "bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400";
+                        {(() => {
+                            // Filter out skills that have reached or exceeded 100% completion relative to their target
+                            const activeMissingSkills = (missingSkillsProgress || []).filter(skill => {
+                                const percentage = (skill.currentLevel / skill.targetLevel) * 100;
+                                return Math.round(percentage) < 100;
+                            });
 
-                                    return (
-                                        <div key={idx} className="flex justify-between items-start border-b border-slate-50 dark:border-slate-800 pb-2.5 last:border-0 last:pb-0">
-                                            <div className="pr-3">
-                                                <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">{skill.skillName}</div>
-                                                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed" title={skill.reason}>
-                                                    {skill.reason}
+                            if (activeMissingSkills.length === 0) {
+                                return (
+                                    <div className="flex flex-col items-center justify-center h-32 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg p-4 text-center transition-all duration-500">
+                                        <svg className="w-8 h-8 mb-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span className="font-bold text-sm">Congratulations!</span>
+                                        <span className="text-xs font-medium mt-1">You've successfully mastered all required skills for this role.</span>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div className="space-y-3">
+                                    {activeMissingSkills.map((skill, idx) => {
+                                        const percentage = (skill.currentLevel / skill.targetLevel) * 100;
+
+                                        let dynamicImportance = 'High';
+                                        let badgeColor = "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400";
+
+                                        if (percentage >= 30 && percentage < 70) {
+                                            dynamicImportance = 'Medium';
+                                            badgeColor = "bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400";
+                                        } else if (percentage >= 70) {
+                                            dynamicImportance = 'Low';
+                                            badgeColor = "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400";
+                                        }
+
+                                        return (
+                                            <div key={idx} className="flex justify-between items-start border-b border-slate-50 dark:border-slate-800 pb-2.5 last:border-0 last:pb-0 transition-all duration-300">
+                                                <div className="pr-3">
+                                                    <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">{skill.skillName}</div>
+                                                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed" title={skill.reason}>
+                                                        {skill.reason}
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col items-end">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider whitespace-nowrap mt-0.5 ${badgeColor}`}>
+                                                        {dynamicImportance}
+                                                    </span>
+                                                    <span className="text-[9px] font-bold text-slate-400 mt-1">
+                                                        {Math.round(percentage)}% Done
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider whitespace-nowrap mt-0.5 ${badgeColor}`}>
-                                                {skill.importance}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })()}
                     </div>
 
-                    {/* Proficiency vs Required Chart */}
+                    {/* Proficiency vs Required Chart (DYNAMIC) */}
                     <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex flex-col min-h-[280px]">
                         <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-4">Proficiency vs. Required</h2>
                         <div className="flex-1 w-full relative">
