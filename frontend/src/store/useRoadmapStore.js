@@ -7,8 +7,13 @@ const useRoadmapStore = create((set, get) => ({
     isLoading: true,
     error: null,
 
-    // Derived Data
-    progressData: { overallProgress: 0, missingSkillsProgress: [], trueOverallMatch: 0 },
+    //derived data
+    progressData: {
+        overallProgress: 0,
+        missingSkillsProgress: [],
+        dynamicAssessedSkills: [],
+        trueOverallMatch: 0
+    },
 
     //called by analysisDetail
     fetchAnalysis: async (id) => {
@@ -26,7 +31,7 @@ const useRoadmapStore = create((set, get) => ({
             if (!res.ok) throw new Error('Failed to fetch data');
             const result = await res.json();
 
-            // Ensure we load any previously saved completed tasks from MongoDB
+            //ensure we load any previously saved completed tasks from MongoDB
             const fetchedCompletedTasks = result.completedTaskIds || [];
 
             set({
@@ -50,14 +55,14 @@ const useRoadmapStore = create((set, get) => ({
             ? state.completedTaskIds.filter(id => id !== taskId)
             : [...state.completedTaskIds, taskId];
 
-        // OPTIMISTIC UI: Instantly update state and recalculate math
+        //optimistic UI: instantly update state and recalculate math
         set({ completedTaskIds: newCompletedTaskIds });
         get().calculateProgress();
 
-        // SILENT BACKGROUND SYNC: Fire and forget
+        //silent background sync: fire and forget
         try {
             await fetch(`http://localhost:8080/api/analysis/${state.analysisId}/progress`, {
-                method: 'PATCH', // Assumes you make a PATCH route on your backend
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ completedTaskIds: newCompletedTaskIds }),
                 credentials: 'include'
@@ -67,7 +72,7 @@ const useRoadmapStore = create((set, get) => ({
         }
     },
 
-    // Math Engine
+    //math Engine
     calculateProgress: () => {
         const { data, completedTaskIds } = get();
         if (!data || !data.aiRoadmap || !data.aiAnalysis) return;
@@ -75,7 +80,7 @@ const useRoadmapStore = create((set, get) => ({
         let totalTasks = 0;
         const skillTaskCounts = {};
 
-        // Map all tasks to count totals and completions
+        //map all tasks to count totals and completions
         data.aiRoadmap.weeks.forEach((week) => {
             week.days.forEach((day) => {
                 day.tasks.forEach((task, taskIndex) => {
@@ -90,9 +95,10 @@ const useRoadmapStore = create((set, get) => ({
             });
         });
 
+        //calculate Overall Roadmap Progress
         const overallProgress = totalTasks === 0 ? 0 : (completedTaskIds.length / totalTasks) * 100;
 
-        // Calculate dynamic missing skills progress for the Banner
+        //calculate dynamic MISSING skills progress for the Bottom Banner
         const missingSkillsProgress = (data.aiAnalysis.criticalMissingSkills || []).map(skill => {
             const stats = skillTaskCounts[skill.skillName];
             if (!stats || stats.total === 0) return { ...skill, currentLevel: skill.currentLevel };
@@ -107,22 +113,55 @@ const useRoadmapStore = create((set, get) => ({
             };
         });
 
-        // Re-calculate true overall match for the donut chart
-        const assessedSkills = data.aiAnalysis.assessedSkills || [];
-        let totalScore = 0;
-        const totalSkills = assessedSkills.length + missingSkillsProgress.length;
+        //calculate dynamic ASSESSED skills progress for all the top charts
+        const dynamicAssessedSkills = (data.aiAnalysis.assessedSkills || []).map(skill => {
+            const stats = skillTaskCounts[skill.skillName];
 
-        [...assessedSkills, ...missingSkillsProgress].forEach(skill => {
-            if (skill.currentLevel >= skill.targetLevel) {
-                totalScore += 100;
+            //if no tasks exist for this skill OR it's a refresher task (no gap), lock it.
+            if (!stats || stats.total === 0 || skill.currentLevel >= skill.targetLevel) {
+                return { ...skill, currentLevel: skill.currentLevel };
+            }
+
+            const gap = skill.targetLevel - skill.currentLevel;
+            const completionRatio = stats.completed / stats.total;
+            const newCurrentLevel = skill.currentLevel + (gap * completionRatio);
+
+            return {
+                ...skill,
+                currentLevel: Math.round(newCurrentLevel)
+            };
+        });
+
+        //re-calculate true overall match for the donut chart
+        let totalScore = 0;
+
+        //combine assessed skills and missing skills for the final math
+        const allSkillsToScore = [...dynamicAssessedSkills, ...missingSkillsProgress];
+        const totalSkillsToScore = allSkillsToScore.length;
+
+        allSkillsToScore.forEach(skill => {
+            //ensure targetLevel exists and isn't 0
+            const target = skill.targetLevel || 100;
+
+            if (skill.currentLevel >= target) {
+                totalScore += 100; // Cap at 100% contribution if they meet or exceed target
             } else {
-                totalScore += (skill.currentLevel / skill.targetLevel) * 100;
+                totalScore += (skill.currentLevel / target) * 100;
             }
         });
 
-        const trueOverallMatch = totalSkills === 0 ? 0 : Math.round(totalScore / totalSkills);
+        //calculate the exact match percentage based on the current state of ALL skills
+        const trueOverallMatch = totalSkillsToScore === 0 ? 0 : Math.round(totalScore / totalSkillsToScore);
 
-        set({ progressData: { overallProgress, missingSkillsProgress, trueOverallMatch } });
+        //update the store
+        set({
+            progressData: {
+                overallProgress,
+                missingSkillsProgress,
+                dynamicAssessedSkills,
+                trueOverallMatch
+            }
+        });
     }
 }));
 
