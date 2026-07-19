@@ -256,6 +256,29 @@ app.patch('/api/analysis/:id/progress', async (req, res) => {
     }
 });
 
+// DELETE ANALYSIS ROUTE
+app.delete('/api/analysis/:id', async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const deleted = await Analysis.findOneAndDelete({
+            _id: req.params.id,
+            user: req.user._id   //users can only delete their own analyses
+        });
+
+        if (!deleted) {
+            return res.status(404).json({ error: 'Analysis not found or not authorized' });
+        }
+
+        res.status(200).json({ message: 'Analysis deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting analysis:', error);
+        res.status(500).json({ error: 'Failed to delete analysis' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(` Server listening on http://localhost:${PORT}`);
 });
