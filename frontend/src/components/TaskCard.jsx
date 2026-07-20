@@ -31,10 +31,6 @@ const TaskCard = ({ taskId, taskDescription, associatedSkill, estimatedHours, is
                     <span className={`px-2 py-0.5 rounded-md ${isCompleted ? 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-500' : 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'}`}>
                         {associatedSkill}
                     </span>
-                    <span className="text-gray-400 dark:text-slate-500 flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        {estimatedHours} hrs
-                    </span>
                 </div>
 
                 {/* Description */}
