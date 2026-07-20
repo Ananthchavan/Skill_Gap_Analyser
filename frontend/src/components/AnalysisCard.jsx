@@ -1,14 +1,43 @@
 import { Link } from 'react-router-dom';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { Trash2 } from 'lucide-react';
+import useRoadmapStore from '../store/useRoadmapStore';
 
 export default function AnalysisCard({ data, onDelete }) {
     const isProcessing = data.status === 'processing';
-    const matchScore = data.aiAnalysis?.overallMatch || 0;
+
+    const { analysisId, progressData } = useRoadmapStore();
+
+    //establish the base score from the database
+    let matchScore = data.aiAnalysis?.overallMatch || 0;
+
+    //if this card is the one actively loaded in the store,
+    //pull its real-time progress calculations directly from Zustand.
+    if (analysisId === data._id && progressData?.trueOverallMatch) {
+        matchScore = progressData.trueOverallMatch;
+    }
+    //fallback:if its a different card and has the roadmap data populated, calculate locally
+    else if (data.aiRoadmap?.weeks) {
+        let totalTasks = 0;
+        data.aiRoadmap.weeks.forEach((week) => {
+            week.days?.forEach((day) => {
+                totalTasks += (day.tasks?.length || 0);
+            });
+        });
+
+        const completedCount = data.completedTaskIds?.length || 0;
+
+        if (totalTasks > 0) {
+            const overallProgressPercentage = completedCount / totalTasks;
+            const remainingGap = 100 - (data.aiAnalysis?.overallMatch || 0);
+            matchScore = Math.round((data.aiAnalysis?.overallMatch || 0) + (remainingGap * overallProgressPercentage));
+        }
+    }
 
     const dateFormatted = new Date(data.createdAt).toLocaleDateString('en-US', {
         month: 'short', day: 'numeric', year: 'numeric'
     });
+
     const chartData = data.aiAnalysis?.assessedSkills?.map(skill => ({
         subject: skill.skillName,
         User: skill.currentLevel,
@@ -37,7 +66,7 @@ export default function AnalysisCard({ data, onDelete }) {
                             </span>
                         )}
 
-                        {/*delete Button */}
+                        {/* Delete Button */}
                         <button
                             onClick={(e) => {
                                 e.preventDefault();
