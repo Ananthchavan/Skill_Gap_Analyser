@@ -256,6 +256,40 @@ app.patch('/api/analysis/:id/progress', async (req, res) => {
     }
 });
 
+//RESOURCE ROUTE(Smart Space)
+app.patch('/api/analysis/:id/resources', async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const { dayId, resources } = req.body;
+
+        if (!dayId || !Array.isArray(resources)) {
+            return res.status(400).json({ error: 'Invalid payload: dayId and resources array are required' });
+        }
+
+        const updatedAnalysis = await Analysis.findOneAndUpdate(
+            { _id: req.params.id, user: req.user._id },
+            { $set: { [`savedResources.${dayId}`]: resources } },
+            { new: true }
+        );
+
+        if (!updatedAnalysis) {
+            return res.status(404).json({ error: 'Analysis not found' });
+        }
+
+        res.status(200).json({
+            success: true,
+            savedResources: updatedAnalysis.savedResources
+        });
+
+    } catch (error) {
+        console.error('Error updating smart space resources:', error);
+        res.status(500).json({ error: 'Failed to save resources' });
+    }
+});
+
 // DELETE ANALYSIS ROUTE
 app.delete('/api/analysis/:id', async (req, res) => {
     try {
