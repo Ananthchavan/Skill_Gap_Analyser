@@ -4,6 +4,7 @@ const useRoadmapStore = create((set, get) => ({
     analysisId: null,
     data: null,
     completedTaskIds: [],
+    savedResources: {},
     isLoading: true,
     error: null,
 
@@ -48,7 +49,7 @@ const useRoadmapStore = create((set, get) => ({
         }
     },
 
-    // 2. The Interaction (Called by Roadmap Timeline checkboxes)
+    // 2. The Interaction(CheckBox Clicked)
     toggleTask: async (taskId) => {
         const state = get();
         const newCompletedTaskIds = state.completedTaskIds.includes(taskId)
@@ -69,6 +70,65 @@ const useRoadmapStore = create((set, get) => ({
             });
         } catch (error) {
             console.error("Silent background sync failed:", error);
+        }
+    },
+
+    //add Smart Space Resource
+    addResource: async (dayId, resourceData) => {
+        const state = get();
+        const currentList = state.savedResources[dayId] || [];
+
+        const newResource = {
+            id: Date.now().toString(),
+            type: resourceData.type,
+            value: resourceData.value,
+            createdAt: new Date().toISOString()
+        };
+
+        const updatedList = [...currentList, newResource];
+        const updatedResources = {
+            ...state.savedResources,
+            [dayId]: updatedList
+        };
+
+        set({ savedResources: updatedResources });
+
+        //silent background Sync
+        try {
+            await fetch(`http://localhost:8080/api/analysis/${state.analysisId}/resources`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dayId, resources: updatedList }),
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error("Failed to sync new resource:", error);
+        }
+    },
+
+    //remove Smart Space Resource
+    removeResource: async (dayId, resourceId) => {
+        const state = get();
+        const currentList = state.savedResources[dayId] || [];
+        const updatedList = currentList.filter(item => item.id !== resourceId);
+
+        const updatedResources = {
+            ...state.savedResources,
+            [dayId]: updatedList
+        };
+
+        set({ savedResources: updatedResources });
+
+        //silent background sync
+        try {
+            await fetch(`http://localhost:8080/api/analysis/${state.analysisId}/resources`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dayId, resources: updatedList }),
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error("Failed to sync removed resource:", error);
         }
     },
 
