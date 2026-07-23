@@ -1,7 +1,9 @@
 import React from 'react';
 import TaskCard from './TaskCard';
+import SmartSpace from './SmartSpace';
 
 const DayCard = ({ weekNumber, dayNumber, topics, tasks, completedTaskIds, onToggleTask }) => {
+    const dayId = `w${weekNumber}-d${dayNumber}`;
     return (
         <div id={`day-${dayNumber}`} className="mb-12 relative flex gap-4 sm:gap-6">
 
@@ -40,6 +42,8 @@ const DayCard = ({ weekNumber, dayNumber, topics, tasks, completedTaskIds, onTog
                         );
                     })}
                 </div>
+
+                <SmartSpace dayId={dayId} />
             </div>
         </div>
     );
