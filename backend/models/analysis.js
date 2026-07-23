@@ -60,6 +60,10 @@ const analysisSchema = new mongoose.Schema({
         type: [String],
         default: []
     },
+    savedResources: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
+    }
 }, { timestamps: true });
 
 const Analysis = mongoose.model('Analysis', analysisSchema);
