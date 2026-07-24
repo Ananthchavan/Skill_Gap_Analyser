@@ -5,11 +5,10 @@ import { getCurrentUser, logoutUser } from '../controllers/authController.js';
 const router = express.Router();
 
 // <===================  AUTH ROUTES ===================>
-
-// Triggers GitHub OAuth login (prompt: select_account is enforced in passport.js)
+// triggers login(select_account is enforced in passport)
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 
-// GitHub OAuth callback — on success redirects to frontend callback page
+// GitHub OAuth
 router.get('/github/callback',
     passport.authenticate('github', {
         failureRedirect: `${process.env.CLIENT_URL}/login`
@@ -19,10 +18,8 @@ router.get('/github/callback',
     }
 );
 
-// Returns the currently authenticated user session
 router.get('/current_user', getCurrentUser);
 
-// Logs out the current user
 router.get('/logout', logoutUser);
 
 export default router;
