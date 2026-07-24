@@ -14,6 +14,7 @@ import mongoose from 'mongoose';
 import multer from 'multer';
 import session from 'express-session';
 import { passport, configurePassport } from './passport.js';
+import authRoutes from './routes/authRoutes.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse');
@@ -68,36 +69,10 @@ app.get('/api/health', (req, res) => {
 });
 
 // <=================== AUTH ROUTES =================>
-
-// Triggers GitHub login — account picker is forced via authorizationParams override in passport.js
-app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
-
-// Redirect after successful login
-app.get('/auth/github/callback',
-    passport.authenticate('github', {
-        failureRedirect: `${process.env.CLIENT_URL}/login`
-    }),
-    (req, res) => {
-        res.redirect(`${process.env.CLIENT_URL}/auth/callback`);
-    }
-);
-
-// Check current logged-in user
-app.get('/api/current_user', (req, res) => {
-    if (!req.user) return res.status(401).json(null);
-    res.json(req.user);
-});
-
-// Logout Route
-app.get('/api/logout', (req, res) => {
-    req.logout((err) => {
-        if (err) {
-            console.error('Logout error:', err);
-            return res.status(500).json({ error: 'Logout failed' });
-        }
-        res.redirect(process.env.CLIENT_URL);
-    });
-});
+// triggers the github login
+app.use('/auth', authRoutes);
+// returns current user
+app.use('/api', authRoutes);
 
 // <===================== ANALYSIS ROUTES ======================>
 
