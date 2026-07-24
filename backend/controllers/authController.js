@@ -1,6 +1,4 @@
 // <=================== AUTH CONTROLLER ===================>
-// Handles HTTP request/response only.
-// All business logic lives in authService.js.
 
 /*
 GET /api/current_user
