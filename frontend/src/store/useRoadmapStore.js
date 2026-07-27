@@ -5,6 +5,7 @@ const useRoadmapStore = create((set, get) => ({
     data: null,
     completedTaskIds: [],
     savedResources: {},
+    quizScores: [], // <-- 1. Added initial state for quiz scores
     isLoading: true,
     error: null,
 
@@ -34,11 +35,15 @@ const useRoadmapStore = create((set, get) => ({
 
             //ensure we load any previously saved completed tasks from MongoDB
             const fetchedCompletedTasks = result.completedTaskIds || [];
+            const fetchedSavedResources = result.savedResources || {};
+            const fetchedQuizScores = result.quizScores || [];
 
             set({
                 analysisId: id,
                 data: result,
                 completedTaskIds: fetchedCompletedTasks,
+                savedResources: fetchedSavedResources,
+                quizScores: fetchedQuizScores,
                 isLoading: false,
             });
 
@@ -49,18 +54,16 @@ const useRoadmapStore = create((set, get) => ({
         }
     },
 
-    // 2. The Interaction(CheckBox Clicked)
+    // Task Toggle
     toggleTask: async (taskId) => {
         const state = get();
         const newCompletedTaskIds = state.completedTaskIds.includes(taskId)
             ? state.completedTaskIds.filter(id => id !== taskId)
             : [...state.completedTaskIds, taskId];
 
-        //optimistic UI: instantly update state and recalculate math
         set({ completedTaskIds: newCompletedTaskIds });
         get().calculateProgress();
 
-        //silent background sync: fire and forget
         try {
             await fetch(`http://localhost:8080/api/analysis/${state.analysisId}/progress`, {
                 method: 'PATCH',
@@ -73,7 +76,7 @@ const useRoadmapStore = create((set, get) => ({
         }
     },
 
-    //add Smart Space Resource
+    // Add Smart Space Resource
     addResource: async (dayId, resourceData) => {
         const state = get();
         const currentList = state.savedResources[dayId] || [];
@@ -93,7 +96,6 @@ const useRoadmapStore = create((set, get) => ({
 
         set({ savedResources: updatedResources });
 
-        //silent background Sync
         try {
             await fetch(`http://localhost:8080/api/analysis/${state.analysisId}/resources`, {
                 method: 'PATCH',
@@ -106,7 +108,7 @@ const useRoadmapStore = create((set, get) => ({
         }
     },
 
-    //remove Smart Space Resource
+    // Remove Smart Space Resource
     removeResource: async (dayId, resourceId) => {
         const state = get();
         const currentList = state.savedResources[dayId] || [];
@@ -119,7 +121,6 @@ const useRoadmapStore = create((set, get) => ({
 
         set({ savedResources: updatedResources });
 
-        //silent background sync
         try {
             await fetch(`http://localhost:8080/api/analysis/${state.analysisId}/resources`, {
                 method: 'PATCH',
@@ -132,7 +133,35 @@ const useRoadmapStore = create((set, get) => ({
         }
     },
 
-    //math Engine
+    //Save Quiz Score
+    saveQuizScore: async (weekNumber, score) => {
+        const state = get();
+
+        const existingIndex = state.quizScores.findIndex(q => q.weekNumber === weekNumber);
+        let updatedQuizScores = [...state.quizScores];
+
+        if (existingIndex !== -1) {
+            updatedQuizScores[existingIndex].score = score;
+        } else {
+            updatedQuizScores.push({ weekNumber, score });
+        }
+
+        set({ quizScores: updatedQuizScores });
+
+        //silent background sync
+        try {
+            await fetch(`http://localhost:8080/api/analysis/${state.analysisId}/quiz-score`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ weekNumber, score }),
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error("Failed to sync quiz score:", error);
+        }
+    },
+
+    // Math Engine
     calculateProgress: () => {
         const { data, completedTaskIds } = get();
         if (!data || !data.aiRoadmap || !data.aiAnalysis) return;
@@ -140,7 +169,6 @@ const useRoadmapStore = create((set, get) => ({
         let totalTasks = 0;
         const skillTaskCounts = {};
 
-        //map all tasks to count totals and completions
         data.aiRoadmap.weeks.forEach((week) => {
             week.days.forEach((day) => {
                 day.tasks.forEach((task, taskIndex) => {
@@ -155,10 +183,8 @@ const useRoadmapStore = create((set, get) => ({
             });
         });
 
-        //calculate Overall Roadmap Progress
         const overallProgress = totalTasks === 0 ? 0 : (completedTaskIds.length / totalTasks) * 100;
 
-        //calculate dynamic MISSING skills progress for the Bottom Banner
         const missingSkillsProgress = (data.aiAnalysis.criticalMissingSkills || []).map(skill => {
             const stats = skillTaskCounts[skill.skillName];
             if (!stats || stats.total === 0) return { ...skill, currentLevel: skill.currentLevel };
@@ -173,11 +199,9 @@ const useRoadmapStore = create((set, get) => ({
             };
         });
 
-        //calculate dynamic ASSESSED skills progress for all the top charts
         const dynamicAssessedSkills = (data.aiAnalysis.assessedSkills || []).map(skill => {
             const stats = skillTaskCounts[skill.skillName];
 
-            //if no tasks exist for this skill OR it's a refresher task (no gap), lock it.
             if (!stats || stats.total === 0 || skill.currentLevel >= skill.targetLevel) {
                 return { ...skill, currentLevel: skill.currentLevel };
             }
@@ -192,18 +216,12 @@ const useRoadmapStore = create((set, get) => ({
             };
         });
 
-        //re-calculate true overall match for the donut chart
         const aiBaseScore = data.aiAnalysis.overallMatch || 0;
-
-        // Find out exactly how much room is left to grow to reach 100%
         const remainingGap = 100 - aiBaseScore;
-
-        // Scale the gap by the overall percentage of the roadmap completed
         const progressMultiplier = overallProgress / 100;
 
         const trueOverallMatch = Math.round(aiBaseScore + (remainingGap * progressMultiplier));
 
-        // Update the store
         set({
             progressData: {
                 overallProgress,
