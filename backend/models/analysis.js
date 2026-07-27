@@ -63,6 +63,13 @@ const analysisSchema = new mongoose.Schema({
     savedResources: {
         type: mongoose.Schema.Types.Mixed,
         default: {}
+    },
+    quizScores: {
+        type: [{
+            weekNumber: mongoose.Schema.Types.Mixed, // 'Mixed' allows numbers (1) or strings ('final')
+            score: Number
+        }],
+        default: []
     }
 }, { timestamps: true });
 
