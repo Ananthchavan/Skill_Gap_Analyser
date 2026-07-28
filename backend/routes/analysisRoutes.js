@@ -46,6 +46,9 @@ router.patch('/:id/progress', updateProgress);
 // smart space — saves the pinned resources for a given roadmap day
 router.patch('/:id/resources', updateResources);
 
+// quiz generation
+router.post('/:id/quiz/generate', generateQuiz);
+
 // delete — permanently removes the analysis (owner-scoped)
 router.delete('/:id', deleteAnalysis);
 
