@@ -155,3 +155,48 @@ export async function extractNonCodeableSkills(jobDescription) {
         throw new Error('Failed to scan Job Description for non-code skills.');
     }
 }
+
+export async function generateMilestoneQuiz(targetRole, curriculumData, isFinal = false) {
+    try {
+        const promptText = isFinal
+            ? `Generate a comprehensive final mock technical assessment (15 questions) for a ${targetRole} covering this entire roadmap:\n${JSON.stringify(curriculumData)}`
+            : `Generate a milestone technical quiz (5-8 questions) for a ${targetRole} based SPECIFICALLY on the topics and tasks covered in this week:\n${JSON.stringify(curriculumData)}`;
+
+        const { text } = await generateText({
+            model: groq('llama-3.3-70b-versatile'),
+            system: `You are an expert Senior Technical Interviewer and Engineering Manager. 
+            Your task is to generate a strict, multiple-choice quiz based on the curriculum provided.
+            
+            OUTPUT FORMAT:
+            You MUST return ONLY a valid JSON object. No conversational text, no markdown blocks, no backticks.
+            The JSON must perfectly match this exact structure:
+            {
+                "questions": [
+                    {
+                        "questionText": "What is the primary purpose of...",
+                        "options": ["Option A", "Option B", "Option C", "Option D"],
+                        "correctAnswer": "Option B",
+                        "explanation": "Option B is correct because..."
+                    }
+                ]
+            }
+            
+            RULES:
+            1. Provide exactly 4 options per question.
+            2. The 'correctAnswer' MUST be an exact string match to one of the 4 items in the 'options' array.
+            3. Provide a clear, educational explanation for WHY the answer is correct and why the others are wrong.
+            4. Ensure questions actually test the specific coding skills and concepts taught in the provided curriculum data.`,
+            prompt: promptText
+        });
+
+        //strip markdown formatting to guarantee safe JSON parsing
+        const cleanJsonText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const parsedQuiz = JSON.parse(cleanJsonText);
+
+        return parsedQuiz.questions || [];
+
+    } catch (error) {
+        console.error('Error generating quiz with Groq:', error);
+        throw new Error('Failed to generate milestone quiz.');
+    }
+}
