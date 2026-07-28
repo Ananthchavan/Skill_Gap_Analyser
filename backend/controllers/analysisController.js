@@ -4,6 +4,7 @@ import Analysis from '../models/analysis.js';
 import { extractNonCodeableSkills } from '../services/aiServices.js';
 import { processAnalysisInBackground } from '../services/analysisProcessor.js';
 import { createRequire } from 'module';
+import { extractNonCodeableSkills, generateMilestoneQuiz } from '../services/aiServices.js';
 
 // pdf-parse doesn't support ESM imports, so we use require
 const require = createRequire(import.meta.url);
@@ -240,5 +241,58 @@ export const deleteAnalysis = async (req, res) => {
     } catch (error) {
         console.error('Error deleting analysis:', error);
         res.status(500).json({ error: 'Failed to delete analysis' });
+    }
+};
+
+/*
+POST /api/analysis/:id/quiz/generate
+Generates a quiz on-the-fly using Groq based on the specific week's curriculum.
+*/
+export const generateQuiz = async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const { id } = req.params;
+        const { weekNumber } = req.body;
+
+        if (!weekNumber) {
+            return res.status(400).json({ error: 'weekNumber is required in the request body.' });
+        }
+
+        //fetch the users roadmap from MongoDB
+        const analysis = await Analysis.findOne({ _id: id, user: req.user._id });
+        if (!analysis || !analysis.aiRoadmap) {
+            return res.status(404).json({ error: 'Analysis or Roadmap not found.' });
+        }
+
+        let curriculumData;
+        let isFinal = false;
+
+        //isolate the specific data Groq needs to test the user on
+        if (weekNumber === 'final') {
+            curriculumData = analysis.aiRoadmap.weeks;
+            isFinal = true;
+        } else {
+            const week = analysis.aiRoadmap.weeks.find(w => w.weekNumber === parseInt(weekNumber));
+            if (!week) {
+                return res.status(400).json({ error: `Week ${weekNumber} not found in the roadmap.` });
+            }
+            curriculumData = week;
+        }
+
+        //call Groq
+        const questions = await generateMilestoneQuiz(analysis.targetRole, curriculumData, isFinal);
+
+        //return the generated quiz to the frontend
+        res.status(200).json({
+            success: true,
+            quiz: questions
+        });
+
+    } catch (error) {
+        console.error('Error generating quiz:', error);
+        res.status(500).json({ error: 'Failed to generate quiz.' });
     }
 };
