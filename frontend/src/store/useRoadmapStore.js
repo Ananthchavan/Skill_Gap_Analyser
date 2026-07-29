@@ -5,7 +5,7 @@ const useRoadmapStore = create((set, get) => ({
     data: null,
     completedTaskIds: [],
     savedResources: {},
-    quizScores: [], // <-- 1. Added initial state for quiz scores
+    quizScores: [],
     isLoading: true,
     error: null,
 
