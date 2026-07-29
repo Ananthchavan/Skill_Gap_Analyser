@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import useRoadmapStore from '../store/useRoadmapStore';
 import DayCard from '../components/DayCard';
 import Navbar from '../components/Navbar';
-import { Code } from 'lucide-react'; // Imported the code icon
+import { Code, CheckCircle2, Trophy, ArrowRight, Lock } from 'lucide-react';
 
 // Helper to calculate week-specific progress for the tabs
 const calculateWeekProgress = (week, completedTaskIds) => {
@@ -21,7 +21,11 @@ const calculateWeekProgress = (week, completedTaskIds) => {
 export default function RoadmapTimelinePage() {
     const { id } = useParams();
     const [activeWeekNum, setActiveWeekNum] = useState(1);
-    const { data, isLoading, fetchAnalysis, completedTaskIds, toggleTask } = useRoadmapStore();
+    const { data, isLoading, fetchAnalysis, completedTaskIds, toggleTask, quizScores, progressData } = useRoadmapStore();
+
+    const isLastWeek = activeWeekNum === data?.aiRoadmap?.weeks.length;
+    const isRoadmapFullyComplete = progressData?.overallProgress === 100;
+    const existingFinalScore = quizScores?.find(q => q.weekNumber === 'final');
 
     useEffect(() => {
         fetchAnalysis(id);
@@ -177,10 +181,42 @@ export default function RoadmapTimelinePage() {
                             />
                         ))}
 
-                        {/* End of week marker */}
-                        <div className="py-8 text-center border-t border-gray-200 dark:border-slate-800 mt-8">
-                            <p className="text-sm font-bold text-gray-400 dark:text-slate-500">End of Week {activeWeekNum}</p>
-                        </div>
+                        {isLastWeek && (
+                            <div className="mt-12 pt-12 border-t border-gray-100 dark:border-slate-800 w-full flex flex-col items-center mb-16">
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-4 shadow-xl shadow-indigo-500/30">
+                                    <CheckCircle2 className="w-8 h-8 text-white" />
+                                </div>
+                                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">
+                                    Final Technical Assessment
+                                </h3>
+
+                                {existingFinalScore ? (
+                                    <div className="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl">
+                                        <Trophy className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                        <span className="text-sm font-bold text-purple-700 dark:text-purple-400">
+                                            Final Assessment Cleared: Score {existingFinalScore.score}%
+                                        </span>
+                                    </div>
+                                ) : isRoadmapFullyComplete ? (
+                                    <div className="mt-4 flex flex-col items-center">
+                                        <Link
+                                            to={`/dashboard/${id}/quiz/final`}
+                                            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-200 active:scale-95"
+                                        >
+                                            Start Final Assessment
+                                            <ArrowRight className="w-5 h-5 ml-1" />
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div className="mt-4 inline-flex items-center gap-2 px-6 py-4 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400">
+                                        <Lock className="w-4 h-4" />
+                                        <span className="text-sm font-medium">
+                                            Complete 100% of the Roadmap to unlock the Final Assessment
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                 </div>

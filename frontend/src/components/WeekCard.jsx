@@ -1,8 +1,14 @@
 import React from 'react';
 import DayCard from './DayCard';
+import { Link, useParams } from 'react-router-dom';
+import { Trophy, ArrowRight, Lock } from 'lucide-react';
+import useRoadmapStore from '../store/useRoadmapStore';
 
 const WeekCard = ({ weekData, isActive, onExpand, completedTaskIds, onToggleTask }) => {
     const { weekNumber, weekFocus, days } = weekData;
+    const { id } = useParams();
+    const { quizScores } = useRoadmapStore();
+    const existingWeekScore = quizScores?.find(q => q.weekNumber === weekNumber);
 
     // Calculate local week-specific progress for the UI headers
     let totalWeekTasks = 0;
@@ -93,6 +99,43 @@ const WeekCard = ({ weekData, isActive, onExpand, completedTaskIds, onToggleTask
                         onToggleTask={onToggleTask}
                     />
                 ))}
+
+                <div className="mt-8 pt-8 pb-4 border-t-2 border-dashed border-gray-200 dark:border-slate-800 flex flex-col items-center text-center">
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-5">
+                        Week {weekNumber} Checkpoint
+                    </h4>
+
+                    {existingWeekScore ? (
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+                                <Trophy className="w-5 h-5 text-emerald-500" />
+                                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                                    Week {weekNumber} Cleared: Score {existingWeekScore.score}%
+                                </span>
+                            </div>
+                            <Link to={`/dashboard/${id}/quiz/${weekNumber}`} className="text-xs font-semibold text-indigo-500 hover:text-indigo-600 transition-colors">
+                                Retake Assessment
+                            </Link>
+                        </div>
+                    ) : isWeekComplete ? (
+                        <div className="flex flex-col items-center gap-2 animate-fade-in-up">
+                            <Link
+                                to={`/dashboard/${id}/quiz/${weekNumber}`}
+                                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-200 active:scale-95"
+                            >
+                                Take Week {weekNumber} Mastery Quiz
+                                <ArrowRight className="w-4 h-4 ml-1" />
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="inline-flex items-center gap-2 px-5 py-3 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 dark:text-slate-400">
+                            <Lock className="w-4 h-4" />
+                            <span className="text-xs font-medium">
+                                Complete all tasks to unlock the Quiz
+                            </span>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
