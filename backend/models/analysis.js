@@ -66,7 +66,7 @@ const analysisSchema = new mongoose.Schema({
     },
     quizScores: {
         type: [{
-            weekNumber: mongoose.Schema.Types.Mixed, // 'Mixed' allows numbers (1) or strings ('final')
+            weekNumber: mongoose.Schema.Types.Mixed,
             score: Number
         }],
         default: []
