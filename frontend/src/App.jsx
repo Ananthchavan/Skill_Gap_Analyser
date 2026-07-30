@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx'
 import AnalysisDetails from './pages/AnalysisDetails.jsx';
 import AuthCallback from './pages/AuthCallback.jsx';
 import RoadmapTimelinePage from './pages/RoadmapTimelinePage.jsx';
+import QuizPage from './pages/QuizPage.jsx';
 
 export default function App() {
   return (
@@ -51,6 +52,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <RoadmapTimelinePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard/:id/quiz/:weekId"
+          element={
+            <ProtectedRoute>
+              <QuizPage />
             </ProtectedRoute>
           }
         />
