@@ -1,7 +1,6 @@
 // <=================== ANALYSIS CONTROLLER ===================>
 
 import Analysis from '../models/analysis.js';
-import { extractNonCodeableSkills } from '../services/aiServices.js';
 import { processAnalysisInBackground } from '../services/analysisProcessor.js';
 import { createRequire } from 'module';
 import { extractNonCodeableSkills, generateMilestoneQuiz } from '../services/aiServices.js';
@@ -215,6 +214,50 @@ export const updateResources = async (req, res) => {
     } catch (error) {
         console.error('Error updating smart space resources:', error);
         res.status(500).json({ error: 'Failed to save resources' });
+    }
+};
+
+/*
+PATCH /api/analysis/:id/quiz-score
+Saves or updates a user's score for a specific milestone quiz (weekly or final).
+*/
+export const saveQuizScore = async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const { weekNumber, score } = req.body;
+
+        if (weekNumber === undefined || score === undefined) {
+            return res.status(400).json({ error: 'weekNumber and score are required in the request body.' });
+        }
+
+        const analysis = await Analysis.findOne({ _id: req.params.id, user: req.user._id });
+        if (!analysis) {
+            return res.status(404).json({ error: 'Analysis not found' });
+        }
+
+        // Check if a score for this week already exists
+        const existingScoreIndex = analysis.quizScores.findIndex(q => q.weekNumber === weekNumber);
+
+        if (existingScoreIndex !== -1) {
+            // Update existing score (retake)
+            analysis.quizScores[existingScoreIndex].score = score;
+        } else {
+            // Add new score
+            analysis.quizScores.push({ weekNumber, score });
+        }
+
+        await analysis.save();
+
+        res.status(200).json({
+            success: true,
+            quizScores: analysis.quizScores
+        });
+    } catch (error) {
+        console.error('Error updating quiz score:', error);
+        res.status(500).json({ error: 'Failed to save quiz score.' });
     }
 };
 

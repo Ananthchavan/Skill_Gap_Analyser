@@ -7,7 +7,8 @@ import {
     getAnalysisById,
     updateProgress,
     updateResources,
-    deleteAnalysis
+    deleteAnalysis,
+    saveQuizScore
 } from '../controllers/analysisController.js';
 
 const router = express.Router();
@@ -48,6 +49,9 @@ router.patch('/:id/resources', updateResources);
 
 // quiz generation
 router.post('/:id/quiz/generate', generateQuiz);
+
+// save quiz score
+router.patch('/:id/quiz-score', saveQuizScore);
 
 // delete — permanently removes the analysis (owner-scoped)
 router.delete('/:id', deleteAnalysis);
