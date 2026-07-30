@@ -8,7 +8,8 @@ import {
     updateProgress,
     updateResources,
     deleteAnalysis,
-    saveQuizScore
+    saveQuizScore,
+    generateQuiz
 } from '../controllers/analysisController.js';
 
 const router = express.Router();

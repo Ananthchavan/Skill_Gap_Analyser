@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Map, ArrowRight, Target, CircleDashed } from 'lucide-react';
+import { Map, ArrowRight, Target, CircleDashed, Trophy } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import useThemeStore from '../store/useThemeStore';
 import useRoadmapStore from '../store/useRoadmapStore';
@@ -15,7 +15,7 @@ export default function AnalysisDetails() {
     const { isDark } = useThemeStore();
 
     // Wire up Zustand
-    const { data, isLoading, fetchAnalysis, progressData } = useRoadmapStore();
+    const { data, isLoading, fetchAnalysis, progressData, quizScores } = useRoadmapStore();
 
     useEffect(() => {
         fetchAnalysis(id);
@@ -423,6 +423,49 @@ export default function AnalysisDetails() {
                         </div>
 
                     </div>
+                </div>
+
+                <div className="mt-8 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center border border-indigo-100 dark:border-indigo-500/20">
+                            <Trophy className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Milestone Assessments</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Track your technical quiz performance across the curriculum.</p>
+                        </div>
+                    </div>
+
+                    {quizScores && quizScores.length > 0 ? (
+                        <div className="flex flex-wrap gap-4">
+                            {[...quizScores].sort((a, b) => a.weekNumber === 'final' ? 1 : b.weekNumber === 'final' ? -1 : a.weekNumber - b.weekNumber).map((quiz, idx) => (
+                                <div key={idx} className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 flex flex-col items-center justify-center text-center min-w-[120px] transition-all hover:scale-105">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                                        {quiz.weekNumber === 'final' ? 'Final Boss' : `Week ${quiz.weekNumber}`}
+                                    </span>
+                                    <div className="relative w-16 h-16 flex items-center justify-center">
+                                        <svg className="transform -rotate-90 w-16 h-16 absolute">
+                                            <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-200 dark:text-slate-700" />
+                                            <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" strokeLinecap="round"
+                                                strokeDasharray={2 * Math.PI * 28}
+                                                strokeDashoffset={(2 * Math.PI * 28) - (quiz.score / 100) * (2 * Math.PI * 28)}
+                                                className={`${quiz.score >= 80 ? 'text-emerald-500' : quiz.score >= 50 ? 'text-amber-500' : 'text-red-500'}`}
+                                            />
+                                        </svg>
+                                        <span className="text-lg font-black text-slate-700 dark:text-slate-200 relative z-10">{quiz.score}%</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-10 px-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                            <Trophy className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-3" />
+                            <p className="text-sm font-medium text-slate-600 dark:text-slate-300">No assessments completed yet.</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm text-center">
+                                Complete your first week on the roadmap to unlock a milestone quiz and track your score here.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
