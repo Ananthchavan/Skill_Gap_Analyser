@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import useRoadmapStore from '../store/useRoadmapStore';
 import DayCard from '../components/DayCard';
 import Navbar from '../components/Navbar';
-import { Code, CheckCircle2, Trophy, ArrowRight, Lock } from 'lucide-react';
+import { Code, CheckCircle2, Trophy, ArrowRight, Lock, BrainCircuit } from 'lucide-react';
 
 // Helper to calculate week-specific progress for the tabs
 const calculateWeekProgress = (week, completedTaskIds) => {
@@ -180,6 +180,51 @@ export default function RoadmapTimelinePage() {
                                 onToggleTask={toggleTask}
                             />
                         ))}
+
+                        {/* Weekly Quiz Section */}
+                        {(() => {
+                            const weekProgress = calculateWeekProgress(activeWeekData, completedTaskIds);
+                            const existingWeekScore = quizScores?.find(q => q.weekNumber === activeWeekNum);
+                            const isWeekComplete = weekProgress === 100;
+
+                            return (
+                                <div className="mt-10 pt-8 border-t border-gray-100 dark:border-slate-800 w-full flex flex-col items-center mb-8">
+                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center mb-3 shadow-lg shadow-indigo-500/30">
+                                        <BrainCircuit className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mb-1">
+                                        Week {activeWeekNum} Mastery Quiz
+                                    </h3>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 text-center max-w-xs">
+                                        Test your understanding of everything covered this week.
+                                    </p>
+
+                                    {existingWeekScore ? (
+                                        <div className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+                                            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                                            <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                                                Week {activeWeekNum} Quiz Cleared — Score: {existingWeekScore.score}%
+                                            </span>
+                                        </div>
+                                    ) : isWeekComplete ? (
+                                        <Link
+                                            to={`/dashboard/${id}/quiz/${activeWeekNum}`}
+                                            className="inline-flex items-center gap-2 px-7 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-200 active:scale-95"
+                                        >
+                                            Take Week {activeWeekNum} Quiz
+                                            <ArrowRight className="w-4 h-4 ml-1" />
+                                        </Link>
+                                    ) : (
+                                        <div className="inline-flex items-center gap-2 px-6 py-3 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400">
+                                            <Lock className="w-4 h-4" />
+                                            <span className="text-sm font-medium">
+                                                Complete 100% of Week {activeWeekNum} to unlock the quiz
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
 
                         {isLastWeek && (
                             <div className="mt-12 pt-12 border-t border-gray-100 dark:border-slate-800 w-full flex flex-col items-center mb-16">
