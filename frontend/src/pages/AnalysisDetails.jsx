@@ -439,8 +439,12 @@ export default function AnalysisDetails() {
                     {quizScores && quizScores.length > 0 ? (
                         <div className="flex flex-wrap gap-4">
                             {[...quizScores].sort((a, b) => a.weekNumber === 'final' ? 1 : b.weekNumber === 'final' ? -1 : a.weekNumber - b.weekNumber).map((quiz, idx) => (
-                                <div key={idx} className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 flex flex-col items-center justify-center text-center min-w-[120px] transition-all hover:scale-105">
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                                <Link
+                                    key={idx}
+                                    to={`/dashboard/${id}/quiz/${quiz.weekNumber}/review`}
+                                    className="group bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 flex flex-col items-center justify-center text-center min-w-[130px] transition-all hover:scale-105 hover:border-indigo-300 dark:hover:border-indigo-700 cursor-pointer shadow-sm hover:shadow-md"
+                                >
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 group-hover:text-indigo-500 transition-colors">
                                         {quiz.weekNumber === 'final' ? 'Final Boss' : `Week ${quiz.weekNumber}`}
                                     </span>
                                     <div className="relative w-16 h-16 flex items-center justify-center">
@@ -454,7 +458,10 @@ export default function AnalysisDetails() {
                                         </svg>
                                         <span className="text-lg font-black text-slate-700 dark:text-slate-200 relative z-10">{quiz.score}%</span>
                                     </div>
-                                </div>
+                                    <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        Review Answers
+                                    </span>
+                                </Link>
                             ))}
                         </div>
                     ) : (

@@ -9,6 +9,7 @@ import AnalysisDetails from './pages/AnalysisDetails.jsx';
 import AuthCallback from './pages/AuthCallback.jsx';
 import RoadmapTimelinePage from './pages/RoadmapTimelinePage.jsx';
 import QuizPage from './pages/QuizPage.jsx';
+import QuizReviewPage from './pages/QuizReviewPage.jsx';
 
 export default function App() {
   return (
@@ -61,6 +62,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <QuizPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard/:id/quiz/:weekId/review"
+          element={
+            <ProtectedRoute>
+              <QuizReviewPage />
             </ProtectedRoute>
           }
         />
