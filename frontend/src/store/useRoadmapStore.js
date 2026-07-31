@@ -134,26 +134,26 @@ const useRoadmapStore = create((set, get) => ({
     },
 
     //Save Quiz Score
-    saveQuizScore: async (weekNumber, score) => {
+    saveQuizScore: async (weekNumber, score, questions, userAnswers) => {
         const state = get();
-
         const existingIndex = state.quizScores.findIndex(q => q.weekNumber === weekNumber);
         let updatedQuizScores = [...state.quizScores];
 
         if (existingIndex !== -1) {
             updatedQuizScores[existingIndex].score = score;
+            updatedQuizScores[existingIndex].questions = questions;
+            updatedQuizScores[existingIndex].userAnswers = userAnswers;
         } else {
-            updatedQuizScores.push({ weekNumber, score });
+            updatedQuizScores.push({ weekNumber, score, questions, userAnswers });
         }
 
         set({ quizScores: updatedQuizScores });
 
-        //silent background sync
         try {
             await fetch(`http://localhost:8080/api/analysis/${state.analysisId}/quiz-score`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ weekNumber, score }),
+                body: JSON.stringify({ weekNumber, score, questions, userAnswers }),
                 credentials: 'include'
             });
         } catch (error) {

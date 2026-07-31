@@ -58,7 +58,7 @@ export default function QuizPage() {
         if (currentIndex < questions.length - 1) {
             setCurrentIndex(currentIndex + 1);
         } else {
-            // FINISH QUIZ - Calculate Score
+            //FINISH QUIZ - Calculate Score
             let correctCount = 0;
             questions.forEach((q, idx) => {
                 if (userAnswers[idx] === q.correctAnswer) correctCount++;
@@ -66,10 +66,10 @@ export default function QuizPage() {
 
             const calculatedScore = Math.round((correctCount / questions.length) * 100);
 
-            // Save to Zustand (which triggers background PATCH to MongoDB)
-            saveQuizScore(formattedWeekId, calculatedScore);
+            //save to Zustand (Now passing questions and userAnswers!)
+            saveQuizScore(formattedWeekId, calculatedScore, questions, userAnswers);
 
-            // Reveal Results
+            //reveal Results
             setFinalScore(calculatedScore);
         }
     };
