@@ -219,7 +219,7 @@ export const updateResources = async (req, res) => {
 
 /*
 PATCH /api/analysis/:id/quiz-score
-Saves or updates a user's score for a specific milestone quiz (weekly or final).
+Saves or updates a user's score AND full quiz data for a specific milestone quiz.
 */
 export const saveQuizScore = async (req, res) => {
     try {
@@ -227,7 +227,8 @@ export const saveQuizScore = async (req, res) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const { weekNumber, score } = req.body;
+        // NEW: We are now extracting questions and userAnswers from the request
+        const { weekNumber, score, questions, userAnswers } = req.body;
 
         if (weekNumber === undefined || score === undefined) {
             return res.status(400).json({ error: 'weekNumber and score are required in the request body.' });
@@ -244,9 +245,16 @@ export const saveQuizScore = async (req, res) => {
         if (existingScoreIndex !== -1) {
             // Update existing score (retake)
             analysis.quizScores[existingScoreIndex].score = score;
+            analysis.quizScores[existingScoreIndex].questions = questions || [];
+            analysis.quizScores[existingScoreIndex].userAnswers = userAnswers || [];
         } else {
-            // Add new score
-            analysis.quizScores.push({ weekNumber, score });
+            // Add new score with payload
+            analysis.quizScores.push({
+                weekNumber,
+                score,
+                questions: questions || [],
+                userAnswers: userAnswers || []
+            });
         }
 
         await analysis.save();
