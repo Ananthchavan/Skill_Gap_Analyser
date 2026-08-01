@@ -4,9 +4,10 @@ const BACKEND_URL = 'http://localhost:8080';
 
 /**
  * useAuth – fetches the currently logged-in user from the Express session.
- * Returns { user, loading }
- *   user  → the user object from DB (null if not logged in)
+ * Returns { user, loading, logout }
+ *   user    → the user object from DB (null if not logged in)
  *   loading → true while the request is in-flight
+ *   logout  → async function that clears the session and navigates to /login
  */
 export function useAuth() {
     const [user, setUser] = useState(null);
@@ -31,8 +32,17 @@ export function useAuth() {
             });
     }, []);
 
-    const logout = () => {
-        window.location.href = `${BACKEND_URL}/api/logout`;
+    const logout = async () => {
+        try {
+            await fetch(`${BACKEND_URL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include',
+            });
+        } catch {
+            // ignore network errors — still navigate away
+        }
+        setUser(null);
+        window.location.href = '/login';
     };
 
     return { user, loading, logout };
