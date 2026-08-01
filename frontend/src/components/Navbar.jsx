@@ -164,7 +164,7 @@ export default function Navbar() {
                   to="/login"
                   className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
                 >
-                  Login with GitHub
+                  Login
                 </Link>
               )
             )}
@@ -248,7 +248,7 @@ export default function Navbar() {
                     onClick={() => setMenuOpen(false)}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg text-center transition-colors"
                   >
-                    Login with GitHub
+                    Login
                   </Link>
                 )
               )}
