@@ -3,19 +3,15 @@ import User from '../models/user.js';
 
 const BCRYPT_ROUNDS = 10;
 
-// ──────────────────────────────────────────────────
 //  GET /api/current_user
 //  Returns the currently authenticated user from session
-// ──────────────────────────────────────────────────
 export const getCurrentUser = (req, res) => {
     if (!req.user) return res.status(401).json(null);
     res.status(200).json(req.user);
 };
 
-// ──────────────────────────────────────────────────
 //  POST /auth/register
 //  Creates a new local (email/password) account
-// ──────────────────────────────────────────────────
 export const registerUser = async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -62,19 +58,15 @@ export const registerUser = async (req, res) => {
     }
 };
 
-// ──────────────────────────────────────────────────
 //  POST /auth/login
 //  Handled by passport.authenticate('local') in the route;
 //  this controller runs AFTER successful authentication.
-// ──────────────────────────────────────────────────
 export const loginUser = (req, res) => {
     // passport has already verified credentials and called req.login()
     res.status(200).json(req.user);
 };
 
-// ──────────────────────────────────────────────────
 //  POST /auth/logout  (changed from GET to POST for security)
-// ──────────────────────────────────────────────────
 export const logoutUser = (req, res) => {
     req.logout((err) => {
         if (err) {

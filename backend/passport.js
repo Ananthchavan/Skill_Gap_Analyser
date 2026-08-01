@@ -6,9 +6,7 @@ import User from './models/user.js';
 
 function configurePassport() {
 
-    // ──────────────────────────────────────────────────
     //  GitHub Strategy (unchanged)
-    // ──────────────────────────────────────────────────
     const githubStrategy = new GitHubStrategy({
         clientID: process.env.GITHUB_CLIENT_ID,
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
@@ -48,9 +46,7 @@ function configurePassport() {
 
     passport.use(githubStrategy);
 
-    // ──────────────────────────────────────────────────
     //  Local Strategy (email + password)
-    // ──────────────────────────────────────────────────
     passport.use(new LocalStrategy(
         { usernameField: 'email', passwordField: 'password' },
         async (email, password, done) => {
@@ -74,9 +70,7 @@ function configurePassport() {
         }
     ));
 
-    // ──────────────────────────────────────────────────
     //  Session serialization (shared)
-    // ──────────────────────────────────────────────────
     passport.serializeUser((user, done) => {
         done(null, user.id);
     });

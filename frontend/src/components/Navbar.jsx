@@ -21,7 +21,6 @@ export default function Navbar() {
     e.preventDefault()
     setMenuOpen(false)
     navigate('/')
-    // Wait for navigation to complete before scrolling
     setTimeout(() => {
       document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })
     }, 50)

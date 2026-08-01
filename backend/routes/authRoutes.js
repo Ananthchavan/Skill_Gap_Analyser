@@ -4,10 +4,7 @@ import { getCurrentUser, registerUser, loginUser, logoutUser } from '../controll
 
 const router = express.Router();
 
-// ──────────────────────────────────────────────────
 //  GitHub OAuth
-// ──────────────────────────────────────────────────
-
 // Redirect to GitHub (select_account enforced in passport)
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 
@@ -21,10 +18,8 @@ router.get('/github/callback',
     }
 );
 
-// ──────────────────────────────────────────────────
-//  Local (Email / Password) Auth
-// ──────────────────────────────────────────────────
 
+// Local (Email / Password) Auth
 // Register a new local account
 router.post('/register', registerUser);
 
@@ -44,10 +39,7 @@ router.post('/login',
     }
 );
 
-// ──────────────────────────────────────────────────
 //  Shared
-// ──────────────────────────────────────────────────
-
 router.get('/current_user', getCurrentUser);
 
 // Changed to POST for CSRF-safety (GET logout can be triggered by <img> etc.)
