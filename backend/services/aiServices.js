@@ -52,7 +52,7 @@ export async function generateTechnicalRoadmap(analysisData) {
         const totalWeeklyHours = analysisData.studyHours * 7;
 
         const { text: roadmapText } = await generateText({
-            model: groq('llama-3.3-70b-versatile'),
+            model: groq('openai/gpt-oss-120b'),
 
             system: `You are an expert Technical Curriculum Engineer and Bootcamp Architect.
             Your job is to generate a highly granular, day-by-day learning schedule tailored precisely to the user's constraints.
@@ -122,7 +122,7 @@ export async function generateTechnicalRoadmap(analysisData) {
 export async function extractNonCodeableSkills(jobDescription) {
     try {
         const { text } = await generateText({
-            model: groq('llama-3.3-70b-versatile'),
+            model: groq('openai/gpt-oss-120b'),
             system: `You are an expert technical recruiter.
             Your task is to analyze a Job Description and extract high-value non-code skills that cannot be auto-detected from repository code files.
 
@@ -163,7 +163,7 @@ export async function generateMilestoneQuiz(targetRole, curriculumData, isFinal 
             : `Generate a milestone technical quiz (5-8 questions) for a ${targetRole} based SPECIFICALLY on the topics and tasks covered in this week:\n${JSON.stringify(curriculumData)}`;
 
         const { text } = await generateText({
-            model: groq('llama-3.3-70b-versatile'),
+            model: groq('openai/gpt-oss-120b'),
             system: `You are an expert Senior Technical Interviewer and Engineering Manager. 
             Your task is to generate a strict, multiple-choice quiz based on the curriculum provided.
             
