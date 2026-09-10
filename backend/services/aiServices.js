@@ -108,7 +108,14 @@ export async function generateTechnicalRoadmap(analysisData) {
             `,
         });
 
-        const cleanJsonText = roadmapText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        // Strip any markdown fences, then extract the outermost JSON object
+        const stripped = roadmapText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const firstBrace = stripped.indexOf('{');
+        const lastBrace = stripped.lastIndexOf('}');
+        if (firstBrace === -1 || lastBrace === -1) {
+            throw new Error('No valid JSON object found in model response.');
+        }
+        const cleanJsonText = stripped.slice(firstBrace, lastBrace + 1);
         const parsedRoadmap = JSON.parse(cleanJsonText);
 
         return parsedRoadmap;
