@@ -3,6 +3,35 @@ import { google } from '@ai-sdk/google';
 import { aiAnalysisSchema } from '../schemas/aiSchema.js';
 import { groq } from '@ai-sdk/groq';
 
+function safeJsonParse(text) {
+    try {
+        return JSON.parse(text);
+    } catch (firstErr) {
+        try {
+            const stack = [];
+            const pairs = { '{': '}', '[': ']' };
+            const closes = new Set(['}', ']']);
+            let inString = false;
+            let escape = false;
+            for (const ch of text) {
+                if (escape) { escape = false; continue; }
+                if (ch === '\\' && inString) { escape = true; continue; }
+                if (ch === '"') { inString = !inString; continue; }
+                if (inString) continue;
+                if (pairs[ch]) stack.push(pairs[ch]);
+                else if (closes.has(ch)) stack.pop();
+            }
+            // Remove trailing commas then close all open structures
+            let repaired = text.trimEnd().replace(/,\s*$/, '');
+            while (stack.length) repaired += stack.pop();
+            return JSON.parse(repaired);
+        } catch (secondErr) {
+            // Re-throw the original, more descriptive error
+            throw firstErr;
+        }
+    }
+}
+
 export async function generateAnalysis(analysisData) {
     try {
         const { output: aiAnalysisResult } = await generateText({
@@ -53,6 +82,7 @@ export async function generateTechnicalRoadmap(analysisData) {
 
         const { text: roadmapText } = await generateText({
             model: groq('openai/gpt-oss-120b'),
+            maxTokens: 8192, // Groq max output for this model is ~8192-16384 tokens
 
             system: `You are an expert Technical Curriculum Engineer and Bootcamp Architect.
             Your job is to generate a highly granular, day-by-day learning schedule tailored precisely to the user's constraints.
@@ -64,10 +94,11 @@ export async function generateTechnicalRoadmap(analysisData) {
             3. The 80/20 Hybrid Focus: 
                - Allocate 80% of the roadmap tasks to learning the user's MISSING skills. 
                - Allocate 20% of the roadmap tasks to high-intensity interview prep, algorithmic practice, and rapid refreshers for their EXISTING skills. Do NOT teach existing skills from scratch.
-            4. Task Tagging: Every single daily task MUST include an "associatedSkill" tag. This tag must perfectly match the exact spelling of one of the skills listed in the user's profile context below. Do not invent new skill names.
+            4. Task Tagging: Every single daily task MUST include an \"associatedSkill\" tag. This tag must perfectly match the exact spelling of one of the skills listed in the user's profile context below. Do not invent new skill names.
             5. Adaptive Pacing & Scope Triage (CRITICAL): You must balance the size of the skill gap against the total time available.
                - TIME DEFICIT (Huge Gap + Low Time): Act as a ruthless crash course. Triage the curriculum. Focus ONLY on the absolute bare minimum concepts needed to survive a technical screen. Skip complex projects.
                - TIME SURPLUS (Small Gap + High Time): DO NOT pad the schedule with fluff or stretch basic tutorials. Pivot immediately to advanced mastery: building production-ready projects, deep architectural patterns, and rigorous LeetCode/Mock Interview practice.
+            6. BREVITY RULE (CRITICAL for token limits): Keep taskDescription values concise (under 15 words each). Keep weekFocus under 10 words. Keep topics arrays to 2-3 items max. Do NOT write paragraphs.
             OUTPUT FORMAT:
             You MUST output ONLY a valid JSON object. No conversational text. No markdown formatting.
             The JSON structure MUST perfectly match this schema:
@@ -108,15 +139,20 @@ export async function generateTechnicalRoadmap(analysisData) {
             `,
         });
 
-        // Strip any markdown fences, then extract the outermost JSON object
+        // Debug: log first 300 chars so we can see what model actually returned
+        console.log('[Roadmap] Raw model response preview:', roadmapText?.slice(0, 300));
+
+        // Strip markdown fences, then extract the outermost JSON object
         const stripped = roadmapText.replace(/```json/gi, '').replace(/```/g, '').trim();
         const firstBrace = stripped.indexOf('{');
         const lastBrace = stripped.lastIndexOf('}');
         if (firstBrace === -1 || lastBrace === -1) {
+            console.error('[Roadmap] Full model response (no JSON found):', roadmapText);
             throw new Error('No valid JSON object found in model response.');
         }
         const cleanJsonText = stripped.slice(firstBrace, lastBrace + 1);
-        const parsedRoadmap = JSON.parse(cleanJsonText);
+        const parsedRoadmap = safeJsonParse(cleanJsonText);
+
 
         return parsedRoadmap;
     } catch (error) {
