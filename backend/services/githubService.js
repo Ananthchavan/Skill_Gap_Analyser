@@ -1,4 +1,5 @@
 import { Octokit } from 'octokit';
+import { scoreRepo, resolveLevel, monthsAgo, LEVEL_CONFIG } from './repoScoring.js';
 
 const octokit = new Octokit({ auth: process.env.GITHUB_PAT });
 
@@ -30,24 +31,20 @@ const JS_FRAMEWORK_KEYWORDS = [
 const TIER_1_LIMIT = 3;  //top 3 repos get dependencies AND 13k readme
 const README_LIMIT = 13000; //13,000 character circuit breaker
 
-const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30;
-
-function monthsAgo(dateStr) {
-    return (Date.now() - new Date(dateStr).getTime()) / MS_PER_MONTH;
-}
-
-function scoreRepo(repo) {
-    const recencyBonus =
-        monthsAgo(repo.pushed_at) < 12 ? 4 : monthsAgo(repo.pushed_at) < 24 ? 2 : 0;
-    const sizeBonus = repo.size > 5000 ? 3 : repo.size > 500 ? 1 : 0;
-
-    return repo.stars * 2 + repo.forks * 3 + sizeBonus + recencyBonus;
-}
-
-export async function fetchAndFilterRepos(githubUrl) {
+/**
+ * Fetch, filter, score, and deep-dive a user's public GitHub repositories.
+ *
+ * @param {string} githubUrl       – full GitHub profile URL
+ * @param {string} experienceLevel – "entry" | "junior" | "mid" | "senior"
+ * @returns {Promise<object[]>}    – array of repo objects (shape unchanged)
+ */
+export async function fetchAndFilterRepos(githubUrl, experienceLevel) {
     const usernameMatch = githubUrl.match(/github\.com\/([^/]+)/);
     if (!usernameMatch) throw new Error('Invalid GitHub URL provided.');
     const username = usernameMatch[1];
+
+    const level = resolveLevel(experienceLevel);
+    const { cutoffMonths } = LEVEL_CONFIG[level];
 
     try {
         const { data: repos } = await octokit.rest.repos.listForUser({
@@ -58,43 +55,43 @@ export async function fetchAndFilterRepos(githubUrl) {
 
         const nonForks = repos.filter((r) => !r.fork);
 
-        // Base data for everyone
+        // Base data for everyone — carry extra fields needed by scorer & substance signals
         const baseRepos = nonForks.map((repo) => ({
-            name: repo.name,
+            name:        repo.name,
             description: repo.description || 'No description provided.',
-            language: repo.language,
-            topics: repo.topics || [],
-            stars: repo.stargazers_count,
-            forks: repo.forks_count,
-            size: repo.size,
-            pushed_at: repo.pushed_at,
-            html_url: repo.html_url,
-            isMajor: false,
+            language:    repo.language,
+            topics:      repo.topics || [],
+            stars:       repo.stargazers_count,
+            forks:       repo.forks_count,
+            size:        repo.size,
+            pushed_at:   repo.pushed_at,
+            html_url:    repo.html_url,
+            isMajor:     false,
+            // new fields for level-aware scoring (not in original output contract,
+            // but harmless additions; aiServices.js ignores unknown fields)
+            created_at:  repo.created_at,
+            has_pages:   repo.has_pages,
+            homepage:    repo.homepage,
+            archived:    repo.archived,
         }));
 
-        //pre-filter drop dead repos 
+        // Pre-filter: drop tiny repos and repos outside the level's time window
+        // Snapshot now once so the same value is used consistently throughout
+        const now = Date.now();
         const candidates = baseRepos.filter(
-            (r) => r.size > 10 && monthsAgo(r.pushed_at) < 36
+            (r) => r.size > 10 && monthsAgo(r.pushed_at, now) < cutoffMonths
         );
 
         const poolForRanking = candidates.length > 0 ? candidates : baseRepos;
-
-        //rank all valid repos descending order by score
-        const ranked = [...poolForRanking]
-            .sort((a, b) => scoreRepo(b) - scoreRepo(a));
-
-        //create fast-lookup sets for our tier system and valid candidates
-        const tier1Names = new Set(ranked.slice(0, TIER_1_LIMIT).map((r) => r.name));
         const candidateNames = new Set(poolForRanking.map((r) => r.name));
 
-        const processedRepos = await Promise.all(
-            baseRepos.map(async (baseData) => {
-                const isTier1 = tier1Names.has(baseData.name);
-                const isCandidate = candidateNames.has(baseData.name);
-
-                if (!isCandidate) return baseData;
-
-                //deep dive 1: fetch languages
+        // ------------------------------------------------------------------ //
+        // Step 1 – Deep dive on ALL candidates in parallel (languages + manifest)
+        // README is NOT fetched here; that happens after scoring (tier-1 only).
+        // ------------------------------------------------------------------ //
+        await Promise.all(
+            poolForRanking.map(async (baseData) => {
+                // deep dive 1: fetch languages
                 try {
                     const { data: languages } = await octokit.rest.repos.listLanguages({
                         owner: username,
@@ -102,16 +99,16 @@ export async function fetchAndFilterRepos(githubUrl) {
                     });
                     baseData.languages = languages;
                 } catch {
-                    //ignore
+                    // ignore — sigStack will treat absent field as 0
                 }
 
-                //determine manifest path fall back to package.json for unknown/null
-                //languages since many React/JS projects report as HTML, CSS, or null.
+                // determine manifest path; fall back to package.json for unknown/null
+                // languages since many React/JS projects report as HTML, CSS, or null.
                 const manifestPath =
                     MANIFEST_FILES[baseData.language] ??
                     (baseData.language == null ? 'package.json' : null);
 
-                //deep dive 2: scan manifests
+                // deep dive 2: scan manifests
                 if (manifestPath) {
                     try {
                         const { data: pkgData } = await octokit.rest.repos.getContent({
@@ -126,8 +123,8 @@ export async function fetchAndFilterRepos(githubUrl) {
                             if (manifestPath === 'package.json') {
                                 const parsed = JSON.parse(decoded);
                                 const allDeps = Object.keys({
-                                    ...(parsed.dependencies || {}),
-                                    ...(parsed.devDependencies || {})
+                                    ...(parsed.dependencies   || {}),
+                                    ...(parsed.devDependencies || {}),
                                 });
 
                                 // Strip pure tooling noise but keep frameworks & libraries
@@ -163,34 +160,63 @@ export async function fetchAndFilterRepos(githubUrl) {
                         // No manifest found or not parseable — skip silently
                     }
                 }
-
-                //deep dive 3: README
-                if (isTier1) {
-                    baseData.isMajor = true;
-                    try {
-                        const { data: readmeData } = await octokit.rest.repos.getReadme({
-                            owner: username,
-                            repo: baseData.name,
-                        });
-                        if (readmeData?.content) {
-                            const decoded = Buffer.from(readmeData.content, 'base64').toString('utf-8');
-                            baseData.readme =
-                                decoded.length > README_LIMIT
-                                    ? decoded.substring(0, README_LIMIT) + '...'
-                                    : decoded;
-                        }
-                    } catch {
-                        //no readme skip
-                    }
-                }
-
-                return baseData;
             })
         );
 
-        return processedRepos;
+        // ------------------------------------------------------------------ //
+        // Step 2 – Score every candidate AFTER deep dive (post-deep-dive fields
+        // like languages/detectedFrameworks are now populated).
+        // Tie-break by pushed_at descending so deterministic ordering.
+        // ------------------------------------------------------------------ //
+        const scored = poolForRanking
+            .map((repo) => ({ repo, score: scoreRepo(repo, level, now) }))
+            .sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                // tie-break: more recently pushed first
+                return new Date(b.repo.pushed_at).getTime() - new Date(a.repo.pushed_at).getTime();
+            });
+
+        const tier1Names = new Set(scored.slice(0, TIER_1_LIMIT).map(({ repo }) => repo.name));
+
+        // ------------------------------------------------------------------ //
+        // Step 3 – Fetch README for tier-1 repos only; mark isMajor = true.
+        // ------------------------------------------------------------------ //
+        await Promise.all(
+            scored.slice(0, TIER_1_LIMIT).map(async ({ repo: baseData }) => {
+                baseData.isMajor = true;
+                try {
+                    const { data: readmeData } = await octokit.rest.repos.getReadme({
+                        owner: username,
+                        repo: baseData.name,
+                    });
+                    if (readmeData?.content) {
+                        const decoded = Buffer.from(readmeData.content, 'base64').toString('utf-8');
+                        baseData.readme =
+                            decoded.length > README_LIMIT
+                                ? decoded.substring(0, README_LIMIT) + '...'
+                                : decoded;
+                    }
+                } catch {
+                    // no readme — skip silently
+                }
+            })
+        );
+
+        // ------------------------------------------------------------------ //
+        // Step 4 – Assemble final output: same shape as before.
+        // Non-candidates are returned as plain baseData, as before.
+        // score is an optional addition — safe because githubData is Mixed.
+        // ------------------------------------------------------------------ //
+        return baseRepos.map((baseData) => {
+            if (!candidateNames.has(baseData.name)) return baseData;
+            // Attach the computed score for visibility / future use
+            const entry = scored.find(({ repo }) => repo.name === baseData.name);
+            if (entry) baseData.score = entry.score;
+            return baseData;
+        });
+
     } catch (error) {
         console.error('Error fetching from GitHub:', error.message);
         throw new Error('Failed to retrieve GitHub repository data.');
     }
-}
+}

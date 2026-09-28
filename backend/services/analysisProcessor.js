@@ -14,7 +14,7 @@ export async function processAnalysisInBackground(analysisId) {
         await analysis.save();
 
         //fetch and format github data
-        const repoData = await fetchAndFilterRepos(analysis.githubUrl);
+        const repoData = await fetchAndFilterRepos(analysis.githubUrl, analysis.experienceLevel);
         analysis.githubData = repoData;
         await analysis.save();
         console.log(`Successfully saved GitHub data for Analysis ID: ${analysisId}`);
