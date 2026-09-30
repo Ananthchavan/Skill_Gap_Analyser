@@ -77,84 +77,107 @@ export async function generateAnalysis(analysisData) {
 
 export async function generateTechnicalRoadmap(analysisData) {
     try {
-        // Calculate the total weekly hours based on their daily input
         const totalWeeklyHours = analysisData.studyHours * 7;
+        const totalWeeks = analysisData.weeksDuration;
 
-        const { text: roadmapText } = await generateText({
-            model: groq('openai/gpt-oss-120b'),
-            maxTokens: 8192, // Groq max output for this model is ~8192-16384 tokens
+        // Shared system prompt — identical for every chunk call
+        const systemPrompt = `You are an expert Technical Curriculum Engineer.
+Generate a day-by-day learning schedule for ONLY the specific weeks you are asked for.
 
-            system: `You are an expert Technical Curriculum Engineer and Bootcamp Architect.
-            Your job is to generate a highly granular, day-by-day learning schedule tailored precisely to the user's constraints.
-            CRITICAL CONSTRAINTS:
-            1. Total Duration: You MUST generate exactly ${analysisData.weeksDuration} weeks of content.
-            2. Weekly Time Budget: The user has exactly ${totalWeeklyHours} hours available in a week (roughly ${analysisData.studyHours} hours/day).
-               - If weekly hours are low (< 14 hours/week), keep tasks highly focused on syntax and core concepts. Do not overwhelm them.
-               - If weekly hours are high (28+ hours/week), increase the density. Include advanced architecture, testing, and deployment tasks.
-            3. The 80/20 Hybrid Focus: 
-               - Allocate 80% of the roadmap tasks to learning the user's MISSING skills. 
-               - Allocate 20% of the roadmap tasks to high-intensity interview prep, algorithmic practice, and rapid refreshers for their EXISTING skills. Do NOT teach existing skills from scratch.
-            4. Task Tagging: Every single daily task MUST include an \"associatedSkill\" tag. This tag must perfectly match the exact spelling of one of the skills listed in the user's profile context below. Do not invent new skill names.
-            5. Adaptive Pacing & Scope Triage (CRITICAL): You must balance the size of the skill gap against the total time available.
-               - TIME DEFICIT (Huge Gap + Low Time): Act as a ruthless crash course. Triage the curriculum. Focus ONLY on the absolute bare minimum concepts needed to survive a technical screen. Skip complex projects.
-               - TIME SURPLUS (Small Gap + High Time): DO NOT pad the schedule with fluff or stretch basic tutorials. Pivot immediately to advanced mastery: building production-ready projects, deep architectural patterns, and rigorous LeetCode/Mock Interview practice.
-            6. BREVITY RULE (CRITICAL for token limits): Keep taskDescription values concise (under 15 words each). Keep weekFocus under 10 words. Keep topics arrays to 2-3 items max. Do NOT write paragraphs.
-            OUTPUT FORMAT:
-            You MUST output ONLY a valid JSON object. No conversational text. No markdown formatting.
-            The JSON structure MUST perfectly match this schema:
-            {
-              "weeks": [
-                {
-                  "weekNumber": 1,
-                  "weekFocus": "String summarizing the week",
-                  "days": [
-                    {
-                      "dayNumber": 1,
-                      "topics": ["Topic 1", "Topic 2"],
-                      "tasks": [
-                        { "taskDescription": "String", "estimatedHours": 2, "associatedSkill": "Skill Name" }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }`,
+RULES:
+1. Output ONLY the weeks requested — no more, no less.
+2. Weekly budget: ${totalWeeklyHours} hrs/week (~${analysisData.studyHours} hrs/day).
+   - Under 14 hrs/week → short, focused tasks only.
+   - 28+ hrs/week → include architecture, testing, deployment tasks.
+3. 80% of tasks address MISSING skills. 20% are interview prep / refreshers.
+4. Every task MUST have "associatedSkill" matching a skill name from the profile exactly.
+5. BREVITY (critical — keeps JSON small):
+   - taskDescription: ≤ 12 words
+   - weekFocus: ≤ 8 words
+   - topics: exactly 2 strings
+   - days per week: exactly 7
+   - tasks per day: exactly 2
 
-            prompt: `
-                Target Role: ${analysisData.targetRole}
-                Target Seniority/Level: ${analysisData.experienceLevel}
-                
-                [Time Constraints]
-                Requested Roadmap Duration: ${analysisData.weeksDuration} Weeks
-                Time Available Per Week: ${totalWeeklyHours} Hours/Week
-                
-                [Core Profile Context]
-                Below is the verified analysis of the user's current strengths and missing skills:
-                ${JSON.stringify(analysisData.aiAnalysis, null, 2)}
-                
-                [Target Job Description]
-                ${analysisData.jobDescription}
-                
-                Generate a sequential, day-by-day roadmap split into structured weeks that bridges their current profile gaps directly to the target role requirements. Do not exceed the requested roadmap duration.
-            `,
-        });
-
-        // Debug: log first 300 chars so we can see what model actually returned
-        console.log('[Roadmap] Raw model response preview:', roadmapText?.slice(0, 300));
-
-        // Strip markdown fences, then extract the outermost JSON object
-        const stripped = roadmapText.replace(/```json/gi, '').replace(/```/g, '').trim();
-        const firstBrace = stripped.indexOf('{');
-        const lastBrace = stripped.lastIndexOf('}');
-        if (firstBrace === -1 || lastBrace === -1) {
-            console.error('[Roadmap] Full model response (no JSON found):', roadmapText);
-            throw new Error('No valid JSON object found in model response.');
+OUTPUT: Return ONLY a valid JSON object. No markdown, no code fences, no explanation text.
+Schema:
+{
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "weekFocus": "short focus",
+      "days": [
+        {
+          "dayNumber": 1,
+          "topics": ["Topic A", "Topic B"],
+          "tasks": [
+            { "taskDescription": "concise task", "estimatedHours": 2, "associatedSkill": "Skill Name" }
+          ]
         }
-        const cleanJsonText = stripped.slice(firstBrace, lastBrace + 1);
-        const parsedRoadmap = safeJsonParse(cleanJsonText);
+      ]
+    }
+  ]
+}`;
 
+        // Shared context injected into every chunk prompt
+        const contextBlock = `Target Role: ${analysisData.targetRole}
+Level: ${analysisData.experienceLevel}
+Weekly Budget: ${totalWeeklyHours} hrs/week | Total Plan: ${totalWeeks} weeks
 
-        return parsedRoadmap;
+[Skill Gap Profile]
+${JSON.stringify(analysisData.aiAnalysis, null, 2)}
+
+[Job Description]
+${analysisData.jobDescription}`;
+
+        // Generate 2 weeks per API call, stitch them together
+        const CHUNK_SIZE = 2;
+        const allWeeks = [];
+
+        for (let startWeek = 1; startWeek <= totalWeeks; startWeek += CHUNK_SIZE) {
+            const endWeek = Math.min(startWeek + CHUNK_SIZE - 1, totalWeeks);
+            const numWeeks = endWeek - startWeek + 1;
+            const chunkLabel = numWeeks === 1 ? `week ${startWeek}` : `weeks ${startWeek}–${endWeek}`;
+
+            console.log(`[Roadmap] Generating ${chunkLabel} of ${totalWeeks}...`);
+
+            const { text: chunkText } = await generateText({
+                model: google('gemini-2.5-flash'),
+                maxTokens: 8192,
+                system: systemPrompt,
+                prompt: `${contextBlock}
+
+TASK: Generate ONLY ${chunkLabel} (weekNumber ${startWeek}${numWeeks > 1 ? ` through ${endWeek}` : ''}).
+${startWeek > 1 ? `Continue progressively from week ${startWeek - 1}. Do not repeat earlier topics.` : 'Start from the most critical missing skills.'}
+Return a JSON object with a "weeks" array containing exactly ${numWeeks} week object(s).`,
+            });
+
+            // Strip any accidental markdown fences
+            const stripped = chunkText.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const firstBrace = stripped.indexOf('{');
+            const lastBrace = stripped.lastIndexOf('}');
+
+            if (firstBrace === -1 || lastBrace === -1) {
+                console.error(`[Roadmap] No JSON found in chunk ${chunkLabel}:`, chunkText);
+                throw new Error(`No valid JSON in roadmap chunk ${chunkLabel}.`);
+            }
+
+            const parsed = safeJsonParse(stripped.slice(firstBrace, lastBrace + 1));
+            const weeks = parsed?.weeks;
+
+            if (!Array.isArray(weeks) || weeks.length === 0) {
+                throw new Error(`Chunk ${chunkLabel} returned no week data.`);
+            }
+
+            // Correct weekNumbers in case model drifted
+            weeks.forEach((w, i) => { w.weekNumber = startWeek + i; });
+            allWeeks.push(...weeks);
+
+            console.log(`[Roadmap] ✓ ${chunkLabel} complete (${weeks.length} week(s))`);
+        }
+
+        console.log(`[Roadmap] ✅ Done — ${allWeeks.length}/${totalWeeks} weeks generated.`);
+        return { weeks: allWeeks };
+
     } catch (error) {
         console.error('Error generating AI Roadmap:', error);
         throw new Error('AI Generation for Roadmap Planner Failed.');
@@ -162,10 +185,11 @@ export async function generateTechnicalRoadmap(analysisData) {
 }
 
 
+
 export async function extractNonCodeableSkills(jobDescription) {
     try {
         const { text } = await generateText({
-            model: groq('openai/gpt-oss-120b'),
+            model: groq('qwen/qwen3.8-27b'),
             system: `You are an expert technical recruiter.
             Your task is to analyze a Job Description and extract high-value non-code skills that cannot be auto-detected from repository code files.
 
@@ -206,7 +230,7 @@ export async function generateMilestoneQuiz(targetRole, curriculumData, isFinal 
             : `Generate a milestone technical quiz (5-8 questions) for a ${targetRole} based SPECIFICALLY on the topics and tasks covered in this week:\n${JSON.stringify(curriculumData)}`;
 
         const { text } = await generateText({
-            model: groq('openai/gpt-oss-120b'),
+            model: groq('qwen/qwen3.8-27b'),
             system: `You are an expert Senior Technical Interviewer and Engineering Manager. 
             Your task is to generate a strict, multiple-choice quiz based on the curriculum provided.
             
