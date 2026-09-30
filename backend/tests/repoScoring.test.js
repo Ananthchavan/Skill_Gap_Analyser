@@ -1,11 +1,3 @@
-/**
- * repoScoring.test.js
- *
- * Uses node:test (built-in since Node 18).  No extra dependencies.
- * Run: node --experimental-vm-modules tests/repoScoring.test.js
- *   or: node tests/repoScoring.test.js   (Node 20+)
- */
-
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -15,9 +7,7 @@ import {
     scoreRepo,
 } from '../services/repoScoring.js';
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30;
 
@@ -35,46 +25,42 @@ function isoMonthsAgo(months, now = Date.now()) {
 function makeRepo(overrides = {}) {
     const now = overrides._now ?? Date.now();
     return {
-        name:        'test-repo',
+        name: 'test-repo',
         description: 'A real description',
-        topics:      ['javascript'],
-        stars:       0,
-        forks:       0,
-        size:        500,
-        pushed_at:   isoMonthsAgo(1, now),
-        created_at:  isoMonthsAgo(13, now),
-        has_pages:   false,
-        homepage:    null,
-        isMajor:     false,
+        topics: ['javascript'],
+        stars: 0,
+        forks: 0,
+        size: 500,
+        pushed_at: isoMonthsAgo(1, now),
+        created_at: isoMonthsAgo(13, now),
+        has_pages: false,
+        homepage: null,
+        isMajor: false,
         // no deep-dive fields by default
         ...overrides,
     };
 }
 
-// ---------------------------------------------------------------------------
 // resolveLevel
-// ---------------------------------------------------------------------------
 
 describe('resolveLevel', () => {
     it('returns known levels as-is', () => {
-        assert.equal(resolveLevel('entry'),  'entry');
+        assert.equal(resolveLevel('entry'), 'entry');
         assert.equal(resolveLevel('junior'), 'junior');
-        assert.equal(resolveLevel('mid'),    'mid');
+        assert.equal(resolveLevel('mid'), 'mid');
         assert.equal(resolveLevel('senior'), 'senior');
     });
 
     it('falls back to "junior" for unknown input', () => {
-        assert.equal(resolveLevel('wizard'),    'junior');
-        assert.equal(resolveLevel(''),          'junior');
-        assert.equal(resolveLevel(null),        'junior');
-        assert.equal(resolveLevel(undefined),   'junior');
-        assert.equal(resolveLevel(42),          'junior');
+        assert.equal(resolveLevel('wizard'), 'junior');
+        assert.equal(resolveLevel(''), 'junior');
+        assert.equal(resolveLevel(null), 'junior');
+        assert.equal(resolveLevel(undefined), 'junior');
+        assert.equal(resolveLevel(42), 'junior');
     });
 });
 
-// ---------------------------------------------------------------------------
 // monthsAgo
-// ---------------------------------------------------------------------------
 
 describe('monthsAgo', () => {
     it('returns approx 0 for a date right now', () => {
@@ -84,60 +70,55 @@ describe('monthsAgo', () => {
 
     it('returns 9999 for null / undefined / garbage', () => {
         const now = Date.now();
-        assert.equal(monthsAgo(null,           now), 9999);
-        assert.equal(monthsAgo(undefined,      now), 9999);
-        assert.equal(monthsAgo('not-a-date',   now), 9999);
-        assert.equal(monthsAgo('',             now), 9999);
+        assert.equal(monthsAgo(null, now), 9999);
+        assert.equal(monthsAgo(undefined, now), 9999);
+        assert.equal(monthsAgo('not-a-date', now), 9999);
+        assert.equal(monthsAgo('', now), 9999);
     });
 
     it('clamps future dates to 0 (never negative)', () => {
-        const now   = Date.now();
+        const now = Date.now();
         const future = new Date(now + 30 * MS_PER_MONTH).toISOString();
         assert.equal(monthsAgo(future, now), 0);
     });
 });
 
-// ---------------------------------------------------------------------------
 // Level cutoff filter (simulated — repoScoring doesn't do filtering itself,
 // but LEVEL_CONFIG.cutoffMonths drives it in githubService)
-// ---------------------------------------------------------------------------
 
 describe('LEVEL_CONFIG cutoffMonths', () => {
     it('30-month-old repo fails entry cutoff (24) but passes mid cutoff (60)', () => {
         const cutoffEntry = LEVEL_CONFIG.entry.cutoffMonths;
-        const cutoffMid   = LEVEL_CONFIG.mid.cutoffMonths;
-        const ageMonths   = 30;
+        const cutoffMid = LEVEL_CONFIG.mid.cutoffMonths;
+        const ageMonths = 30;
 
         assert.ok(ageMonths >= cutoffEntry, 'entry should exclude 30-month-old repo');
-        assert.ok(ageMonths <  cutoffMid,   'mid should include 30-month-old repo');
+        assert.ok(ageMonths < cutoffMid, 'mid should include 30-month-old repo');
     });
 });
 
-// ---------------------------------------------------------------------------
 // scoreRepo — level sensitivity
-// ---------------------------------------------------------------------------
 
 describe('scoreRepo — old vs new repo across levels', () => {
     it('48-month-old substantial repo: senior score > entry score', () => {
-        const now  = Date.now();
+        const now = Date.now();
         const repo = makeRepo({
-            _now:       now,
-            pushed_at:  isoMonthsAgo(48, now),
+            _now: now,
+            pushed_at: isoMonthsAgo(48, now),
             created_at: isoMonthsAgo(72, now),
-            stars:      50,
-            forks:      10,
-            size:       3000,
+            stars: 50,
+            forks: 10,
+            size: 3000,
             description: 'A mature production project',
-            topics:     ['nodejs', 'postgres'],
-            has_pages:  true,
-            // deep-dive fields present
-            languages:          { JavaScript: 10000, TypeScript: 5000, CSS: 1000 },
+            topics: ['nodejs', 'postgres'],
+            has_pages: true,
+            languages: { JavaScript: 10000, TypeScript: 5000, CSS: 1000 },
             detectedFrameworks: ['express', 'prisma', 'react'],
-            isMajor:            true,
+            isMajor: true,
         });
 
         const seniorScore = scoreRepo(repo, 'senior', now);
-        const entryScore  = scoreRepo(repo, 'entry',  now);
+        const entryScore = scoreRepo(repo, 'entry', now);
 
         assert.ok(
             seniorScore > entryScore,
@@ -146,17 +127,17 @@ describe('scoreRepo — old vs new repo across levels', () => {
     });
 
     it('brand-new tiny repo: entry score > senior score', () => {
-        const now  = Date.now();
+        const now = Date.now();
         const repo = makeRepo({
-            _now:       now,
-            pushed_at:  isoMonthsAgo(0.5, now),
-            created_at: isoMonthsAgo(1,   now),
-            stars:      0,
-            forks:      0,
-            size:       80,
+            _now: now,
+            pushed_at: isoMonthsAgo(0.5, now),
+            created_at: isoMonthsAgo(1, now),
+            stars: 0,
+            forks: 0,
+            size: 80,
         });
 
-        const entryScore  = scoreRepo(repo, 'entry',  now);
+        const entryScore = scoreRepo(repo, 'entry', now);
         const seniorScore = scoreRepo(repo, 'senior', now);
 
         assert.ok(
@@ -166,10 +147,7 @@ describe('scoreRepo — old vs new repo across levels', () => {
     });
 });
 
-// ---------------------------------------------------------------------------
 // scoreRepo — impact / star sensitivity
-// ---------------------------------------------------------------------------
-
 describe('scoreRepo — star sensitivity', () => {
     it('0 stars vs 5 stars makes a meaningful difference', () => {
         const now = Date.now();
@@ -198,23 +176,20 @@ describe('scoreRepo — star sensitivity', () => {
     });
 });
 
-// ---------------------------------------------------------------------------
 // scoreRepo — robustness
-// ---------------------------------------------------------------------------
-
 describe('scoreRepo — robustness', () => {
     it('invalid level resolves to junior — same result as passing "junior"', () => {
-        const now  = Date.now();
+        const now = Date.now();
         const repo = makeRepo({ _now: now });
 
-        const scoreInvalid = scoreRepo(repo, 'hacker',  now);
-        const scoreJunior  = scoreRepo(repo, 'junior',  now);
+        const scoreInvalid = scoreRepo(repo, 'hacker', now);
+        const scoreJunior = scoreRepo(repo, 'junior', now);
 
         assert.equal(scoreInvalid, scoreJunior);
     });
 
     it('invalid pushed_at does not throw and does not return NaN', () => {
-        const now  = Date.now();
+        const now = Date.now();
         const repo = makeRepo({ _now: now, pushed_at: 'not-a-date' });
 
         let result;
@@ -223,7 +198,7 @@ describe('scoreRepo — robustness', () => {
     });
 
     it('null pushed_at does not throw and does not return NaN', () => {
-        const now  = Date.now();
+        const now = Date.now();
         const repo = makeRepo({ _now: now, pushed_at: null });
 
         let result;

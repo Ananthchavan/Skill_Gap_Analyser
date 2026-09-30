@@ -31,13 +31,7 @@ const JS_FRAMEWORK_KEYWORDS = [
 const TIER_1_LIMIT = 3;  //top 3 repos get dependencies AND 13k readme
 const README_LIMIT = 13000; //13,000 character circuit breaker
 
-/**
- * Fetch, filter, score, and deep-dive a user's public GitHub repositories.
- *
- * @param {string} githubUrl       – full GitHub profile URL
- * @param {string} experienceLevel – "entry" | "junior" | "mid" | "senior"
- * @returns {Promise<object[]>}    – array of repo objects (shape unchanged)
- */
+
 export async function fetchAndFilterRepos(githubUrl, experienceLevel) {
     const usernameMatch = githubUrl.match(/github\.com\/([^/]+)/);
     if (!usernameMatch) throw new Error('Invalid GitHub URL provided.');
@@ -57,26 +51,23 @@ export async function fetchAndFilterRepos(githubUrl, experienceLevel) {
 
         // Base data for everyone — carry extra fields needed by scorer & substance signals
         const baseRepos = nonForks.map((repo) => ({
-            name:        repo.name,
+            name: repo.name,
             description: repo.description || 'No description provided.',
-            language:    repo.language,
-            topics:      repo.topics || [],
-            stars:       repo.stargazers_count,
-            forks:       repo.forks_count,
-            size:        repo.size,
-            pushed_at:   repo.pushed_at,
-            html_url:    repo.html_url,
-            isMajor:     false,
-            // new fields for level-aware scoring (not in original output contract,
-            // but harmless additions; aiServices.js ignores unknown fields)
-            created_at:  repo.created_at,
-            has_pages:   repo.has_pages,
-            homepage:    repo.homepage,
-            archived:    repo.archived,
+            language: repo.language,
+            topics: repo.topics || [],
+            stars: repo.stargazers_count,
+            forks: repo.forks_count,
+            size: repo.size,
+            pushed_at: repo.pushed_at,
+            html_url: repo.html_url,
+            isMajor: false,
+            created_at: repo.created_at,
+            has_pages: repo.has_pages,
+            homepage: repo.homepage,
+            archived: repo.archived,
         }));
 
-        // Pre-filter: drop tiny repos and repos outside the level's time window
-        // Snapshot now once so the same value is used consistently throughout
+        // drop tiny repos and repos outside the level's time window
         const now = Date.now();
         const candidates = baseRepos.filter(
             (r) => r.size > 10 && monthsAgo(r.pushed_at, now) < cutoffMonths
@@ -85,10 +76,8 @@ export async function fetchAndFilterRepos(githubUrl, experienceLevel) {
         const poolForRanking = candidates.length > 0 ? candidates : baseRepos;
         const candidateNames = new Set(poolForRanking.map((r) => r.name));
 
-        // ------------------------------------------------------------------ //
         // Step 1 – Deep dive on ALL candidates in parallel (languages + manifest)
         // README is NOT fetched here; that happens after scoring (tier-1 only).
-        // ------------------------------------------------------------------ //
         await Promise.all(
             poolForRanking.map(async (baseData) => {
                 // deep dive 1: fetch languages
@@ -123,7 +112,7 @@ export async function fetchAndFilterRepos(githubUrl, experienceLevel) {
                             if (manifestPath === 'package.json') {
                                 const parsed = JSON.parse(decoded);
                                 const allDeps = Object.keys({
-                                    ...(parsed.dependencies   || {}),
+                                    ...(parsed.dependencies || {}),
                                     ...(parsed.devDependencies || {}),
                                 });
 
@@ -163,11 +152,9 @@ export async function fetchAndFilterRepos(githubUrl, experienceLevel) {
             })
         );
 
-        // ------------------------------------------------------------------ //
         // Step 2 – Score every candidate AFTER deep dive (post-deep-dive fields
         // like languages/detectedFrameworks are now populated).
         // Tie-break by pushed_at descending so deterministic ordering.
-        // ------------------------------------------------------------------ //
         const scored = poolForRanking
             .map((repo) => ({ repo, score: scoreRepo(repo, level, now) }))
             .sort((a, b) => {
@@ -178,9 +165,7 @@ export async function fetchAndFilterRepos(githubUrl, experienceLevel) {
 
         const tier1Names = new Set(scored.slice(0, TIER_1_LIMIT).map(({ repo }) => repo.name));
 
-        // ------------------------------------------------------------------ //
         // Step 3 – Fetch README for tier-1 repos only; mark isMajor = true.
-        // ------------------------------------------------------------------ //
         await Promise.all(
             scored.slice(0, TIER_1_LIMIT).map(async ({ repo: baseData }) => {
                 baseData.isMajor = true;
@@ -202,11 +187,9 @@ export async function fetchAndFilterRepos(githubUrl, experienceLevel) {
             })
         );
 
-        // ------------------------------------------------------------------ //
         // Step 4 – Assemble final output: same shape as before.
         // Non-candidates are returned as plain baseData, as before.
         // score is an optional addition — safe because githubData is Mixed.
-        // ------------------------------------------------------------------ //
         return baseRepos.map((baseData) => {
             if (!candidateNames.has(baseData.name)) return baseData;
             // Attach the computed score for visibility / future use
@@ -219,4 +202,4 @@ export async function fetchAndFilterRepos(githubUrl, experienceLevel) {
         console.error('Error fetching from GitHub:', error.message);
         throw new Error('Failed to retrieve GitHub repository data.');
     }
-}
+}
