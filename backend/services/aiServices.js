@@ -258,7 +258,7 @@ export async function generateMilestoneQuiz(targetRole, curriculumData, isFinal 
 
         //strip markdown formatting to guarantee safe JSON parsing
         const cleanJsonText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-        const parsedQuiz = JSON.parse(cleanJsonText);
+        const parsedQuiz = safeJsonParse(cleanJsonText);
 
         return parsedQuiz.questions || [];
 
