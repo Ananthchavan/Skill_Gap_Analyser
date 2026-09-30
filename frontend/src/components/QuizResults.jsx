@@ -97,16 +97,7 @@ export default function QuizResults({ questions, userAnswers, score, onBackToRoa
                 })}
             </div>
 
-            {/* Back to Roadmap CTA */}
-            <div className="flex justify-center">
-                <button
-                    onClick={onBackToRoadmap}
-                    className="inline-flex items-center gap-2 px-8 py-4 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 text-white dark:text-slate-900 font-bold rounded-xl shadow-lg transition-all active:scale-95"
-                >
-                    <ArrowLeft className="w-5 h-5" />
-                    Return to Roadmap
-                </button>
-            </div>
+
 
         </div>
     );
