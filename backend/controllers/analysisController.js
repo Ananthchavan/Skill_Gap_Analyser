@@ -1,7 +1,7 @@
 // <=================== ANALYSIS CONTROLLER ===================>
 
 import Analysis from '../models/analysis.js';
-import { processAnalysisInBackground } from '../services/analysisProcessor.js';
+import { analysisQueue, JOB_OPTIONS } from '../services/queue.js';
 import { createRequire } from 'module';
 import { extractNonCodeableSkills, generateMilestoneQuiz } from '../services/aiServices.js';
 
@@ -88,10 +88,12 @@ export const createAnalysis = async (req, res) => {
             analysisId: newAnalysis._id,
         });
 
-        // fire-and-forget — errors here won't bubble up to the user
-        processAnalysisInBackground(newAnalysis._id).catch(err => {
-            console.error('Unhandled error in background process:', err);
-        });
+        // enqueue the job — durable, retried, and timeout-protected
+        await analysisQueue.add(
+            'run',
+            { analysisId: newAnalysis._id },
+            JOB_OPTIONS
+        );
 
     } catch (error) {
         console.error('Error processing analysis:', error);
