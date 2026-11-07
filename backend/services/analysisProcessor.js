@@ -2,41 +2,69 @@ import Analysis from '../models/analysis.js';
 import { fetchAndFilterRepos } from './githubService.js';
 import { generateAnalysis, generateTechnicalRoadmap } from './aiServices.js';
 
-export async function processAnalysisInBackground(analysisId) {
+/*
+  Tags an error with the pipeline stage that threw it.
+  The queue's "failed" event handler reads this to persist failedStage.
+*/
+function stageError(stage, originalError) {
+    const err = new Error(originalError.message);
+    err.stage = stage;
+    err.stack = originalError.stack;
+    return err;
+}
+
+/*
+  Main pipeline. Accepts an optional BullMQ Job so it can:
+    - report per-stage progress (0-100) for future UI polling
+    - surface the stage name to the queue's failed handler
+*/
+export async function processAnalysisInBackground(analysisId, job = null) {
+    const analysis = await Analysis.findById(analysisId);
+    if (!analysis) throw new Error('Analysis document not found.');
+
+    console.log(`[Queue] Starting pipeline for Analysis ID: ${analysisId}`);
+
+    // ── Stage 1: GitHub fetch ─────────────────────────────────────────
+    analysis.status = 'processing';
+    await analysis.save();
+    if (job) await job.updateProgress(5);
+
+    let repoData;
     try {
-        const analysis = await Analysis.findById(analysisId);
-        if (!analysis) throw new Error('Analysis document not found.');
-
-        console.log(`Starting background processing for Analysis ID: ${analysisId}`);
-
-        //start the process
-        analysis.status = 'processing';
-        await analysis.save();
-
-        //fetch and format github data
-        const repoData = await fetchAndFilterRepos(analysis.githubUrl, analysis.experienceLevel);
-        analysis.githubData = repoData;
-        await analysis.save();
-        console.log(`Successfully saved GitHub data for Analysis ID: ${analysisId}`);
-
-        //generate analysis
-        const analysisResult = await generateAnalysis(analysis);
-        analysis.aiAnalysis = analysisResult;
-        await analysis.save();
-        console.log(`Saved AI Analysis for ID: ${analysisId}`);
-
-        //generate roadmap
-        const roadmapResult = await generateTechnicalRoadmap(analysis);
-        analysis.aiRoadmap = roadmapResult;
-
-        //mark the process as done
-        analysis.status = 'completed';
-        await analysis.save();
-        console.log(`Successfully completed complete AI generation pipeline for ID: ${analysisId}`);
-
-    } catch (error) {
-        console.error(`Background processing failed for ID ${analysisId}:`, error);
-        //update status as failed
-        await Analysis.findByIdAndUpdate(analysisId, { status: 'failed' });
+        repoData = await fetchAndFilterRepos(analysis.githubUrl, analysis.experienceLevel);
+    } catch (err) {
+        throw stageError('github', err);
     }
+
+    analysis.githubData = repoData;
+    await analysis.save();
+    console.log(`[Queue] ✓ GitHub data saved for ID: ${analysisId}`);
+    if (job) await job.updateProgress(35);
+
+    // ── Stage 2: AI Analysis ──────────────────────────────────────────
+    let analysisResult;
+    try {
+        analysisResult = await generateAnalysis(analysis);
+    } catch (err) {
+        throw stageError('ai_analysis', err);
+    }
+
+    analysis.aiAnalysis = analysisResult;
+    await analysis.save();
+    console.log(`[Queue] ✓ AI analysis saved for ID: ${analysisId}`);
+    if (job) await job.updateProgress(65);
+
+    // ── Stage 3: AI Roadmap ───────────────────────────────────────────
+    let roadmapResult;
+    try {
+        roadmapResult = await generateTechnicalRoadmap(analysis);
+    } catch (err) {
+        throw stageError('ai_roadmap', err);
+    }
+
+    analysis.aiRoadmap = roadmapResult;
+    analysis.status = 'completed';
+    await analysis.save();
+    console.log(`[Queue] ✅ Pipeline complete for ID: ${analysisId}`);
+    if (job) await job.updateProgress(100);
 }
