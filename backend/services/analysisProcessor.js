@@ -2,10 +2,6 @@ import Analysis from '../models/analysis.js';
 import { fetchAndFilterRepos } from './githubService.js';
 import { generateAnalysis, generateTechnicalRoadmap } from './aiServices.js';
 
-/*
-  Tags an error with the pipeline stage that threw it.
-  The queue's "failed" event handler reads this to persist failedStage.
-*/
 function stageError(stage, originalError) {
     const err = new Error(originalError.message);
     err.stage = stage;
@@ -14,9 +10,7 @@ function stageError(stage, originalError) {
 }
 
 /*
-  Main pipeline. Accepts an optional BullMQ Job so it can:
-    - report per-stage progress (0-100) for future UI polling
-    - surface the stage name to the queue's failed handler
+  Main pipeline - BullMQ
 */
 export async function processAnalysisInBackground(analysisId, job = null) {
     const analysis = await Analysis.findById(analysisId);
@@ -24,7 +18,7 @@ export async function processAnalysisInBackground(analysisId, job = null) {
 
     console.log(`[Queue] Starting pipeline for Analysis ID: ${analysisId}`);
 
-    // ── Stage 1: GitHub fetch ─────────────────────────────────────────
+    // ── Stage 1: GitHub fetch
     analysis.status = 'processing';
     await analysis.save();
     if (job) await job.updateProgress(5);
@@ -41,7 +35,7 @@ export async function processAnalysisInBackground(analysisId, job = null) {
     console.log(`[Queue] ✓ GitHub data saved for ID: ${analysisId}`);
     if (job) await job.updateProgress(35);
 
-    // ── Stage 2: AI Analysis ──────────────────────────────────────────
+    // Stage 2: AI Analysis
     let analysisResult;
     try {
         analysisResult = await generateAnalysis(analysis);
@@ -54,7 +48,7 @@ export async function processAnalysisInBackground(analysisId, job = null) {
     console.log(`[Queue] ✓ AI analysis saved for ID: ${analysisId}`);
     if (job) await job.updateProgress(65);
 
-    // ── Stage 3: AI Roadmap ───────────────────────────────────────────
+    // Stage 3: AI Roadmap
     let roadmapResult;
     try {
         roadmapResult = await generateTechnicalRoadmap(analysis);
@@ -65,6 +59,6 @@ export async function processAnalysisInBackground(analysisId, job = null) {
     analysis.aiRoadmap = roadmapResult;
     analysis.status = 'completed';
     await analysis.save();
-    console.log(`[Queue] ✅ Pipeline complete for ID: ${analysisId}`);
+    console.log(`[Queue] Pipeline complete for ID: ${analysisId}`);
     if (job) await job.updateProgress(100);
 }

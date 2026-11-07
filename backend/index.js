@@ -47,9 +47,7 @@ mongoose.connect(process.env.MONGO_URI)
     .then(async () => {
         console.log(' Connected to MongoDB');
 
-        // ── Startup sweep ──────────────────────────────────────────────────
-        // Re-enqueue any analyses that were stuck in pending/processing from
-        // a previous crash or ungraceful shutdown.
+        // Re-enqueue any analyses that were stuck in pending/processing from a previous shutdown.
         try {
             const stuck = await Analysis.find({
                 status: { $in: ['pending', 'processing'] }
@@ -62,7 +60,7 @@ mongoose.connect(process.env.MONGO_URI)
                         analysisQueue.add('run', { analysisId: doc._id }, JOB_OPTIONS)
                     )
                 );
-                console.log(`[Startup] ✅ Re-enqueued ${stuck.length} job(s).`);
+                console.log(`[Startup] Re-enqueued ${stuck.length} job(s).`);
             } else {
                 console.log('[Startup] No stuck jobs found.');
             }
