@@ -14,6 +14,8 @@ import session from 'express-session';
 import { passport, configurePassport } from './passport.js';
 import authRoutes from './routes/authRoutes.js';
 import analysisRoutes from './routes/analysisRoutes.js';
+import { analysisQueue, JOB_OPTIONS } from './services/queue.js';
+import Analysis from './models/analysis.js';
 
 //configure passport after dotenv has loaded env
 configurePassport();
@@ -42,7 +44,32 @@ app.use(passport.session());
 
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log(' Connected to MongoDB'))
+    .then(async () => {
+        console.log(' Connected to MongoDB');
+
+        // ── Startup sweep ──────────────────────────────────────────────────
+        // Re-enqueue any analyses that were stuck in pending/processing from
+        // a previous crash or ungraceful shutdown.
+        try {
+            const stuck = await Analysis.find({
+                status: { $in: ['pending', 'processing'] }
+            }).select('_id');
+
+            if (stuck.length > 0) {
+                console.log(`[Startup] Found ${stuck.length} stuck job(s) — re-enqueuing...`);
+                await Promise.all(
+                    stuck.map(doc =>
+                        analysisQueue.add('run', { analysisId: doc._id }, JOB_OPTIONS)
+                    )
+                );
+                console.log(`[Startup] ✅ Re-enqueued ${stuck.length} job(s).`);
+            } else {
+                console.log('[Startup] No stuck jobs found.');
+            }
+        } catch (sweepErr) {
+            console.error('[Startup] Sweep failed:', sweepErr.message);
+        }
+    })
     .catch((err) => console.error(' MongoDB connection error:', err));
 
 app.get('/api/health', (req, res) => {
