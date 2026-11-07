@@ -52,6 +52,21 @@ const analysisSchema = new mongoose.Schema({
         enum: ['pending', 'processing', 'completed', 'failed'],
         default: 'pending',
     },
+    // populated when a job fails so we know exactly what broke and where
+    failedReason: {
+        type: String,
+        default: null,
+    },
+    failedStage: {
+        type: String,
+        enum: ['github', 'ai_analysis', 'ai_roadmap', null],
+        default: null,
+    },
+    // how many times BullMQ has attempted this job
+    attempts: {
+        type: Number,
+        default: 0,
+    },
     aiAnalysis: {
         type: mongoose.Schema.Types.Mixed,
         default: null,
