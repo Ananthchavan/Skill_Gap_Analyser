@@ -142,7 +142,7 @@ ${analysisData.jobDescription}`;
 
             const { text: chunkText } = await generateText({
                 model: google('gemini-2.5-flash'),
-                maxTokens: 8192,
+                maxOutputTokens: 8192,
                 system: systemPrompt,
                 prompt: `${contextBlock}
 
