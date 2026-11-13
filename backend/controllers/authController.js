@@ -3,11 +3,23 @@ import User from '../models/user.js';
 
 const BCRYPT_ROUNDS = 10;
 
+// Returns only the fields the client needs — never exposes credentials or tokens.
+function sanitizeUser(user) {
+    return {
+        _id:          user._id,
+        username:     user.username,
+        email:        user.email        ?? null,
+        avatarUrl:    user.avatarUrl    ?? null,
+        profileUrl:   user.profileUrl   ?? null,
+        authProvider: user.authProvider ?? null,
+    };
+}
+
 //  GET /api/current_user
 //  Returns the currently authenticated user from session
 export const getCurrentUser = (req, res) => {
     if (!req.user) return res.status(401).json(null);
-    res.status(200).json(req.user);
+    res.status(200).json(sanitizeUser(req.user));
 };
 
 //  POST /auth/register
@@ -50,7 +62,7 @@ export const registerUser = async (req, res) => {
                 console.error('Session error after register:', err);
                 return res.status(500).json({ error: 'Registration succeeded but sign-in failed. Please log in.' });
             }
-            res.status(201).json(savedUser);
+            res.status(201).json(sanitizeUser(savedUser));
         });
     } catch (error) {
         console.error('Register error:', error);
@@ -63,7 +75,7 @@ export const registerUser = async (req, res) => {
 //  this controller runs AFTER successful authentication.
 export const loginUser = (req, res) => {
     // passport has already verified credentials and called req.login()
-    res.status(200).json(req.user);
+    res.status(200).json(sanitizeUser(req.user));
 };
 
 //  POST /auth/logout  (changed from GET to POST for security)
