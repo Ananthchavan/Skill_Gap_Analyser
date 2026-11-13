@@ -15,10 +15,6 @@ Grabs all analyses for the logged-in user, minus the heavy fields to keep it sna
 */
 export const getDashboard = async (req, res) => {
     try {
-        if (!req.user) {
-            return res.status(401).json({ error: 'You must be logged in to view the dashboard.' });
-        }
-
         // strip big fields so the dashboard loads fast
         const analyses = await Analysis.find({ user: req.user._id })
             .sort({ createdAt: -1 })
@@ -37,10 +33,6 @@ Creates a new analysis record then kicks off the background processor without bl
 */
 export const createAnalysis = async (req, res) => {
     try {
-        if (!req.user) {
-            return res.status(401).json({ error: 'You must be logged in.' });
-        }
-
         const {
             targetRole,
             experienceLevel,
@@ -127,10 +119,6 @@ Fetches the full details of a single analysis — only if it belongs to the requ
 */
 export const getAnalysisById = async (req, res) => {
     try {
-        if (!req.user) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
         const analysis = await Analysis.findOne({
             _id: req.params.id,
             user: req.user._id
@@ -153,10 +141,6 @@ Silently syncs the user's completed task IDs in the background so progress is ne
 */
 export const updateProgress = async (req, res) => {
     try {
-        if (!req.user) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
         const { completedTaskIds } = req.body;
 
         if (!Array.isArray(completedTaskIds)) {
@@ -189,10 +173,6 @@ Saves the curated resources a user pinned for a specific day in their Smart Spac
 */
 export const updateResources = async (req, res) => {
     try {
-        if (!req.user) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
         const { dayId, resources } = req.body;
 
         if (!dayId || !Array.isArray(resources)) {
@@ -225,10 +205,6 @@ Saves or updates a user's score AND full quiz data for a specific milestone quiz
 */
 export const saveQuizScore = async (req, res) => {
     try {
-        if (!req.user) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
         // NEW: We are now extracting questions and userAnswers from the request
         const { weekNumber, score, questions, userAnswers } = req.body;
 
@@ -277,10 +253,6 @@ Permanently removes an analysis — scoped to the owner so no one can delete som
 */
 export const deleteAnalysis = async (req, res) => {
     try {
-        if (!req.user) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
         const deleted = await Analysis.findOneAndDelete({
             _id: req.params.id,
             user: req.user._id
@@ -303,10 +275,6 @@ Generates a quiz on-the-fly using Groq based on the specific week's curriculum.
 */
 export const generateQuiz = async (req, res) => {
     try {
-        if (!req.user) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
         const { id } = req.params;
         const { weekNumber } = req.body;
 

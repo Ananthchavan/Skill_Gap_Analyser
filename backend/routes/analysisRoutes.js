@@ -11,8 +11,12 @@ import {
     saveQuizScore,
     generateQuiz
 } from '../controllers/analysisController.js';
+import requireAuth from '../middleware/requireAuth.js';
 
 const router = express.Router();
+
+// Guard every analysis route — must be logged in
+router.use(requireAuth);
 
 // intercepts the uploaded PDF into memory so we never touch the disk
 const storage = multer.memoryStorage();
