@@ -29,11 +29,18 @@ app.use(cors({
 }));
 app.use(express.json());
 
+if (!process.env.SESSION_SECRET) {
+    console.error('[FATAL] SESSION_SECRET environment variable is not set. Refusing to start.');
+    process.exit(1);
+}
+
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'a_very_secret_string',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',
         maxAge: 24 * 60 * 60 * 1000
     }
