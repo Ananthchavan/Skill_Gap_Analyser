@@ -4,6 +4,7 @@ import { Loader2, X, BrainCircuit } from 'lucide-react';
 import useRoadmapStore from '../store/useRoadmapStore';
 import QuestionCard from '../components/QuestionCard';
 import QuizResults from '../components/QuizResults';
+import { API_URL } from '../lib/api';
 
 export default function QuizPage() {
     const { id, weekId } = useParams();
@@ -26,7 +27,7 @@ export default function QuizPage() {
     useEffect(() => {
         const fetchQuiz = async () => {
             try {
-                const res = await fetch(`http://localhost:8080/api/analysis/${id}/quiz/generate`, {
+                const res = await fetch(`${API_URL}/api/analysis/${id}/quiz/generate`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ weekNumber: formattedWeekId }),

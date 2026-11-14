@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AnalysisCard from '../components/AnalysisCard';
 import Navbar from '../components/Navbar';
+import { API_URL } from '../lib/api';
 
 export default function Dashboard() {
     const [analyses, setAnalyses] = useState([]);
@@ -11,7 +12,7 @@ export default function Dashboard() {
     useEffect(() => {
         const fetchDashboard = async () => {
             try {
-                const res = await fetch('http://localhost:8080/api/analysis/dashboard', {
+                const res = await fetch(`${API_URL}/api/analysis/dashboard`, {
                     credentials: 'include'
                 });
                 if (!res.ok) throw new Error('Failed to fetch');
@@ -29,7 +30,7 @@ export default function Dashboard() {
 
     const handleDelete = async (id) => {
         try {
-            const res = await fetch(`http://localhost:8080/api/analysis/${id}`, {
+            const res = await fetch(`${API_URL}/api/analysis/${id}`, {
                 method: 'DELETE',
                 credentials: 'include',
             });

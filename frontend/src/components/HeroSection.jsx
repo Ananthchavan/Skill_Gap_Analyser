@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { API_URL } from '../lib/api'
 
 /* ─── tiny animated flow-line SVG ─── */
 function FlowArrow() {
@@ -85,7 +86,7 @@ export default function HeroSection() {
     }
     // User is logged in – check if they already have analyses
     try {
-      const res = await fetch('http://localhost:8080/api/analysis/dashboard', {
+      const res = await fetch(`${API_URL}/api/analysis/dashboard`, {
         credentials: 'include',
       })
       const data = res.ok ? await res.json() : []

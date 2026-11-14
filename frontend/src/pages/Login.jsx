@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+import { API_URL } from '../lib/api';
 
 //GitHub SVG
 const GitHubIcon = () => (
@@ -34,7 +33,7 @@ export default function Login() {
 
     //GitHub login (redirect flow)
     const handleGitHubLogin = () => {
-        window.location.href = `${API}/auth/github`;
+        window.location.href = `${API_URL}/auth/github`;
     };
 
     //Email/password login
@@ -49,7 +48,7 @@ export default function Login() {
 
         setLoading(true);
         try {
-            const res = await fetch(`${API}/auth/login`, {
+            const res = await fetch(`${API_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',

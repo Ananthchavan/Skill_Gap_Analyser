@@ -16,6 +16,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
+import { API_URL } from '../lib/api'
 import {
   Select,
   SelectContent,
@@ -86,7 +87,7 @@ export default function NewAnalysis() {
   const fileInputRef = useRef(null)
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/current_user', { credentials: 'include' })
+    fetch(`${API_URL}/api/current_user`, { credentials: 'include' })
       .then((res) => (res.ok ? res.json() : null))
       .then((user) => {
         if (user?.profileUrl) setGithubUrl(user.profileUrl)
@@ -158,7 +159,7 @@ export default function NewAnalysis() {
     setIsScanningSkills(true)
 
     try {
-      const res = await fetch('http://localhost:8080/api/analysis/extract-skills', {
+      const res = await fetch(`${API_URL}/api/analysis/extract-skills`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobDescription }),
@@ -202,7 +203,7 @@ export default function NewAnalysis() {
     fd.append('selfAttestedSkills', JSON.stringify(selfAttestedSkills))
 
     try {
-      const res = await fetch('http://localhost:8080/api/analysis/new', {
+      const res = await fetch(`${API_URL}/api/analysis/new`, {
         method: 'POST',
         body: fd,
         credentials: 'include'

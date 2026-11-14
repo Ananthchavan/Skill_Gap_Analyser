@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-
-const BACKEND_URL = 'http://localhost:8080';
+import { API_URL } from '../lib/api';
 
 /**
  * useAuth – fetches the currently logged-in user from the Express session.
@@ -14,7 +13,7 @@ export function useAuth() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`${BACKEND_URL}/api/current_user`, {
+        fetch(`${API_URL}/api/current_user`, {
             credentials: 'include', // send session cookie
         })
             .then(async (res) => {
@@ -34,7 +33,7 @@ export function useAuth() {
 
     const logout = async () => {
         try {
-            await fetch(`${BACKEND_URL}/auth/logout`, {
+            await fetch(`${API_URL}/auth/logout`, {
                 method: 'POST',
                 credentials: 'include',
             });

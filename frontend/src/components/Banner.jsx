@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { API_URL } from '../lib/api'
 
 /* Decorative network-dot SVG background (top-right area) */
 function NetworkBg() {
@@ -48,7 +49,7 @@ export default function Banner() {
     }
     // User is logged in — find their most recent analysis and go to its roadmap
     try {
-      const res = await fetch('http://localhost:8080/api/analysis/dashboard', {
+      const res = await fetch(`${API_URL}/api/analysis/dashboard`, {
         credentials: 'include',
       })
       const data = res.ok ? await res.json() : []

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+import { API_URL } from '../lib/api';
 
 //GitHub SVG
 const GitHubIcon = () => (
@@ -44,7 +43,7 @@ export default function Signup() {
 
     //GitHub signup
     const handleGitHubSignup = () => {
-        window.location.href = `${API}/auth/github`;
+        window.location.href = `${API_URL}/auth/github`;
     };
 
     //Email/password registration
@@ -67,7 +66,7 @@ export default function Signup() {
 
         setLoading(true);
         try {
-            const res = await fetch(`${API}/auth/register`, {
+            const res = await fetch(`${API_URL}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',

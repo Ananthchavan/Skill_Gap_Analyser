@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { API_URL } from '../lib/api';
 
 const useRoadmapStore = create((set, get) => ({
     analysisId: null,
@@ -27,7 +28,7 @@ const useRoadmapStore = create((set, get) => ({
 
         set({ isLoading: true, error: null });
         try {
-            const res = await fetch(`http://localhost:8080/api/analysis/${id}`, {
+            const res = await fetch(`${API_URL}/api/analysis/${id}`, {
                 credentials: 'include'
             });
             if (!res.ok) throw new Error('Failed to fetch data');
@@ -65,7 +66,7 @@ const useRoadmapStore = create((set, get) => ({
         get().calculateProgress();
 
         try {
-            await fetch(`http://localhost:8080/api/analysis/${state.analysisId}/progress`, {
+            await fetch(`${API_URL}/api/analysis/${state.analysisId}/progress`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ completedTaskIds: newCompletedTaskIds }),
@@ -97,7 +98,7 @@ const useRoadmapStore = create((set, get) => ({
         set({ savedResources: updatedResources });
 
         try {
-            await fetch(`http://localhost:8080/api/analysis/${state.analysisId}/resources`, {
+            await fetch(`${API_URL}/api/analysis/${state.analysisId}/resources`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ dayId, resources: updatedList }),
@@ -122,7 +123,7 @@ const useRoadmapStore = create((set, get) => ({
         set({ savedResources: updatedResources });
 
         try {
-            await fetch(`http://localhost:8080/api/analysis/${state.analysisId}/resources`, {
+            await fetch(`${API_URL}/api/analysis/${state.analysisId}/resources`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ dayId, resources: updatedList }),
@@ -150,7 +151,7 @@ const useRoadmapStore = create((set, get) => ({
         set({ quizScores: updatedQuizScores });
 
         try {
-            await fetch(`http://localhost:8080/api/analysis/${state.analysisId}/quiz-score`, {
+            await fetch(`${API_URL}/api/analysis/${state.analysisId}/quiz-score`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ weekNumber, score, questions, userAnswers }),
