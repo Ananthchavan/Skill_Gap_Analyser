@@ -5,6 +5,12 @@ import User from '../models/user.js';
 import { analysisQueue, JOB_OPTIONS } from '../services/queue.js';
 import { createRequire } from 'module';
 import { extractNonCodeableSkills, generateMilestoneQuiz } from '../services/aiServices.js';
+import {
+    createAnalysisSchema,
+    updateProgressSchema,
+    updateResourcesSchema,
+    saveQuizScoreSchema,
+} from '../schemas/requestSchemas.js';
 
 // pdf-parse doesn't support ESM imports, so we use require
 const require = createRequire(import.meta.url);
@@ -34,6 +40,11 @@ Creates a new analysis record then kicks off the background processor without bl
 */
 export const createAnalysis = async (req, res) => {
     try {
+        const parsed = createAnalysisSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ error: parsed.error.issues.map(i => i.message).join('; ') });
+        }
+
         const {
             targetRole,
             experienceLevel,
@@ -163,11 +174,11 @@ Silently syncs the user's completed task IDs in the background so progress is ne
 */
 export const updateProgress = async (req, res) => {
     try {
-        const { completedTaskIds } = req.body;
-
-        if (!Array.isArray(completedTaskIds)) {
-            return res.status(400).json({ error: 'completedTaskIds must be an array' });
+        const parsed = updateProgressSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ error: parsed.error.issues.map(i => i.message).join('; ') });
         }
+        const { completedTaskIds } = parsed.data;
 
         const updatedAnalysis = await Analysis.findOneAndUpdate(
             { _id: req.params.id, user: req.user._id },
@@ -195,11 +206,11 @@ Saves the curated resources a user pinned for a specific day in their Smart Spac
 */
 export const updateResources = async (req, res) => {
     try {
-        const { dayId, resources } = req.body;
-
-        if (!dayId || !Array.isArray(resources)) {
-            return res.status(400).json({ error: 'Invalid payload: dayId and resources array are required' });
+        const parsed = updateResourcesSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ error: parsed.error.issues.map(i => i.message).join('; ') });
         }
+        const { dayId, resources } = parsed.data;
 
         const updatedAnalysis = await Analysis.findOneAndUpdate(
             { _id: req.params.id, user: req.user._id },
@@ -227,12 +238,12 @@ Saves or updates a user's score AND full quiz data for a specific milestone quiz
 */
 export const saveQuizScore = async (req, res) => {
     try {
-        // NEW: We are now extracting questions and userAnswers from the request
-        const { weekNumber, score, questions, userAnswers } = req.body;
-
-        if (weekNumber === undefined || score === undefined) {
-            return res.status(400).json({ error: 'weekNumber and score are required in the request body.' });
+        const parsed = saveQuizScoreSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ error: parsed.error.issues.map(i => i.message).join('; ') });
         }
+        // NEW: We are now extracting questions and userAnswers from the request
+        const { weekNumber, score, questions, userAnswers } = parsed.data;
 
         const analysis = await Analysis.findOne({ _id: req.params.id, user: req.user._id });
         if (!analysis) {
