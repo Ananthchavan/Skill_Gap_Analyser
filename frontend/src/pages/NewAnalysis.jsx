@@ -207,8 +207,14 @@ export default function NewAnalysis() {
         body: fd,
         credentials: 'include'
       })
-      if (!res.ok) throw new Error('Server error')
       const data = await res.json()
+      if (!res.ok) {
+        const msg = res.status === 429
+          ? `${data.error}. Your limit resets on ${new Date(data.resetsOn).toLocaleDateString()}.`
+          : (data.error || 'Something went wrong. Please try again.')
+        setErrors({ form: msg })
+        return
+      }
       setSuccessData({ analysisId: data.analysisId });
       setTimeout(() => navigate('/dashboard'), 2500)
     } catch (err) {

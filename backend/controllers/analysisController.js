@@ -1,6 +1,7 @@
 // <=================== ANALYSIS CONTROLLER ===================>
 
 import Analysis from '../models/analysis.js';
+import User from '../models/user.js';
 import { analysisQueue, JOB_OPTIONS } from '../services/queue.js';
 import { createRequire } from 'module';
 import { extractNonCodeableSkills, generateMilestoneQuiz } from '../services/aiServices.js';
@@ -57,6 +58,24 @@ export const createAnalysis = async (req, res) => {
             return res.status(400).json({ error: 'Resume pdf is required' });
         }
 
+        // Generation-limit check
+        const user = await User.findById(req.user._id);
+        const now = new Date();
+        const allowedGenerations = user.allowedGenerations ?? 5;
+
+        // Reset cycle if the reset date has passed
+        if (!user.limitResetDate || now >= user.limitResetDate) {
+            user.generationsUsed = 0;
+            user.limitResetDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+            await user.save();
+        }
+
+        if ((user.generationsUsed ?? 0) >= allowedGenerations) {
+            return res.status(429).json({
+                error: 'Generation limit reached',
+                resetsOn: user.limitResetDate,
+            });
+        }
         // pull the raw text out of the uploaded PDF buffer
         const pdfData = await pdfParse(req.file.buffer);
         const ResumeText = pdfData.text;
@@ -73,6 +92,9 @@ export const createAnalysis = async (req, res) => {
             selfAttestedSkills: parsedSkills,
             status: 'pending',
         });
+
+        // Increment the user's generation counter now that the doc is saved
+        await User.findByIdAndUpdate(req.user._id, { $inc: { generationsUsed: 1 } });
 
         // respond immediately so the user isn't waiting on the heavy AI processing
         res.status(201).json({
