@@ -14,6 +14,7 @@ import session from 'express-session';
 import { passport, configurePassport } from './passport.js';
 import authRoutes from './routes/authRoutes.js';
 import analysisRoutes from './routes/analysisRoutes.js';
+import githubRoutes from './routes/githubRoutes.js';
 import { analysisQueue, JOB_OPTIONS } from './services/queue.js';
 import Analysis from './models/analysis.js';
 
@@ -89,6 +90,9 @@ app.use('/api', authRoutes);
 
 // <=================== ANALYSIS ROUTES =================>
 app.use('/api/analysis', analysisRoutes);
+
+// <=================== GITHUB ROUTES =================>
+app.use('/api/github', githubRoutes);
 
 app.listen(PORT, () => {
     console.log(` Server listening on http://localhost:${PORT}`);
