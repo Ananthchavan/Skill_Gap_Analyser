@@ -1,5 +1,6 @@
 import Analysis from '../models/analysis.js';
-import { fetchAndFilterRepos } from './githubService.js';
+import User from '../models/user.js';
+import { getGithubDataForAnalysis } from './githubSnapshotService.js';
 import { generateAnalysis, generateTechnicalRoadmap } from './aiServices.js';
 
 function stageError(stage, originalError) {
@@ -16,6 +17,9 @@ export async function processAnalysisInBackground(analysisId, job = null) {
     const analysis = await Analysis.findById(analysisId);
     if (!analysis) throw new Error('Analysis document not found.');
 
+    const user = await User.findById(analysis.user);
+    if (!user) throw new Error('User document not found.');
+
     console.log(`[Queue] Starting pipeline for Analysis ID: ${analysisId}`);
 
     // ── Stage 1: GitHub fetch
@@ -25,7 +29,7 @@ export async function processAnalysisInBackground(analysisId, job = null) {
 
     let repoData;
     try {
-        repoData = await fetchAndFilterRepos(analysis.githubUrl, analysis.experienceLevel);
+        repoData = await getGithubDataForAnalysis(user, analysis.githubUrl);
     } catch (err) {
         throw stageError('github', err);
     }

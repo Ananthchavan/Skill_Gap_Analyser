@@ -48,12 +48,18 @@ export const createAnalysis = async (req, res) => {
         const {
             targetRole,
             experienceLevel,
-            githubUrl,
+            githubUrl: rawGithubUrl,
             jobDescription,
             studyHours,
             weeksDuration,
             selfAttestedSkills
         } = req.body;
+
+        // Generation-limit check (also gives us the user doc)
+        const user = await User.findById(req.user._id);
+
+        // If no githubUrl was submitted but the user has a saved githubUsername, build the URL
+        const githubUrl = rawGithubUrl || (user.githubUsername ? `https://github.com/${user.githubUsername}` : undefined);
 
         // selfAttestedSkills arrives as a JSON string from the form, so we parse it carefully
         let parsedSkills = [];
@@ -70,7 +76,6 @@ export const createAnalysis = async (req, res) => {
         }
 
         // Generation-limit check
-        const user = await User.findById(req.user._id);
         const now = new Date();
         const allowedGenerations = user.allowedGenerations ?? 5;
 
