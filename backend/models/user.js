@@ -47,6 +47,13 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     },
+    githubUsername: {
+        type: String,
+    },
+    githubSnapshot: {
+        data: { type: mongoose.Schema.Types.Mixed },
+        fetchedAt: { type: Date },
+    },
 }, { timestamps: true });
 
 export default mongoose.model('User', userSchema);

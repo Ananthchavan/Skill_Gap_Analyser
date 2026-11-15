@@ -17,6 +17,7 @@ function configurePassport() {
 
             if (user) {
                 user.accessToken = accessToken;
+                user.githubUsername = profile.username;
                 await user.save();
                 return done(null, user);
             }
@@ -24,6 +25,7 @@ function configurePassport() {
             const newUser = new User({
                 githubId: profile.id,
                 username: profile.username,
+                githubUsername: profile.username,
                 email: profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null,
                 avatarUrl: profile.photos && profile.photos.length > 0 ? profile.photos[0].value : null,
                 profileUrl: profile.profileUrl,
