@@ -76,10 +76,18 @@ function isRateLimitError(err) {
     return err?.status === 403 || err?.status === 429;
 }
 
+export async function fetchGithubSnapshot(username, experienceLevel = 'mid') {
+    return _fetchRepos(username, experienceLevel);
+}
+
 export async function fetchAndFilterRepos(githubUrl, experienceLevel) {
     const usernameMatch = githubUrl.match(/github\.com\/([^/]+)/);
     if (!usernameMatch) throw new Error('Invalid GitHub URL provided.');
     const username = usernameMatch[1];
+    return _fetchRepos(username, experienceLevel);
+}
+
+async function _fetchRepos(username, experienceLevel) {
 
     const level = resolveLevel(experienceLevel);
     const { cutoffMonths } = LEVEL_CONFIG[level];
