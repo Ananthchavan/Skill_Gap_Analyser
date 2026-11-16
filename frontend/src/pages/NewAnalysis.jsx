@@ -14,6 +14,8 @@ import {
   BookOpen,
   CheckCircle2,
   ArrowRight,
+  RefreshCw,
+  Trash2,
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import { API_URL } from '../lib/api'
@@ -66,6 +68,18 @@ const inputClass =
   'focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 ' +
   'transition-all shadow-sm'
 
+// ── relative-time helper ──────────────────────────────────────────────────
+function relativeTime(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins} minute${mins === 1 ? '' : 's'} ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs} hour${hrs === 1 ? '' : 's'} ago`
+  const days = Math.floor(hrs / 24)
+  return `${days} day${days === 1 ? '' : 's'} ago`
+}
+
 export default function NewAnalysis() {
   const navigate = useNavigate()
   const [targetRole, setTargetRole] = useState('')
@@ -84,16 +98,80 @@ export default function NewAnalysis() {
   const [isScanningSkills, setIsScanningSkills] = useState(false)
   const [scanError, setScanError] = useState('')
 
+  // GitHub status state
+  const [savedUsername, setSavedUsername] = useState(null)   // string | null
+  const [fetchedAt, setFetchedAt] = useState(null)           // ISO string | null
+  const [urlEditedByUser, setUrlEditedByUser] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [refreshMsg, setRefreshMsg] = useState(null)         // { type: 'success'|'error', text: string }
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
   const fileInputRef = useRef(null)
 
+  // Load GitHub status on mount
   useEffect(() => {
-    fetch(`${API_URL}/api/current_user`, { credentials: 'include' })
+    fetch(`${API_URL}/api/github/status`, { credentials: 'include' })
       .then((res) => (res.ok ? res.json() : null))
-      .then((user) => {
-        if (user?.profileUrl) setGithubUrl(user.profileUrl)
+      .then((data) => {
+        if (data?.username) {
+          setSavedUsername(data.username)
+          setFetchedAt(data.fetchedAt ?? null)
+          setGithubUrl(`https://github.com/${data.username}`)
+        }
       })
       .catch(() => { })
   }, [])
+
+  /* ── GitHub actions ── */
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    setRefreshMsg(null)
+    try {
+      const res = await fetch(`${API_URL}/api/github/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (res.status === 429) {
+        setErrors((p) => ({ ...p, form: data.error || 'GitHub rate limit reached. Try again later.' }))
+        setRefreshMsg({ type: 'error', text: data.error || 'Rate limit reached.' })
+      } else if (!res.ok) {
+        setRefreshMsg({ type: 'error', text: data.error || 'Refresh failed.' })
+      } else {
+        setFetchedAt(data.fetchedAt)
+        setRefreshMsg({ type: 'success', text: 'GitHub data refreshed!' })
+      }
+    } catch {
+      setRefreshMsg({ type: 'error', text: 'Could not reach server.' })
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
+  const handleDeleteSnapshot = async () => {
+    if (!confirmDelete) { setConfirmDelete(true); return }
+    setIsDeleting(true)
+    setConfirmDelete(false)
+    try {
+      const res = await fetch(`${API_URL}/api/github/snapshot`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (res.ok) {
+        setSavedUsername(null)
+        setFetchedAt(null)
+        setGithubUrl('')
+        setRefreshMsg(null)
+      } else {
+        setRefreshMsg({ type: 'error', text: 'Failed to remove data.' })
+      }
+    } catch {
+      setRefreshMsg({ type: 'error', text: 'Could not reach server.' })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   /* ── drag & drop handlers ── */
   const handleDragOver = useCallback((e) => {
@@ -435,11 +513,77 @@ export default function NewAnalysis() {
                     id="githubUrl"
                     type="url"
                     value={githubUrl}
-                    onChange={(e) => setGithubUrl(e.target.value)}
+                    onChange={(e) => {
+                      setGithubUrl(e.target.value)
+                      setUrlEditedByUser(true)
+                      setRefreshMsg(null)
+                    }}
                     placeholder="https://github.com/your-username"
                     className={`${inputClass} pl-9`}
                   />
                 </div>
+
+                {/* Synced status or no-data hint */}
+                {savedUsername ? (
+                  <>
+                    <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
+                      {fetchedAt
+                        ? <>GitHub data last synced <span className="font-medium text-slate-500 dark:text-slate-400">{relativeTime(fetchedAt)}</span></>
+                        : 'GitHub data not yet synced.'}
+                      {urlEditedByUser && (
+                        <span className="ml-2 text-amber-500 dark:text-amber-400">
+                          · Edited URL uses fresh, unsaved data for this analysis.
+                        </span>
+                      )}
+                    </p>
+
+                    {/* Action buttons */}
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleRefresh}
+                        disabled={isRefreshing || isDeleting}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-xs font-semibold border border-indigo-200 dark:border-indigo-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isRefreshing
+                          ? <><Loader2 className="w-3 h-3 animate-spin" />Refreshing…</>
+                          : <><RefreshCw className="w-3 h-3" />Refresh GitHub data</>}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleDeleteSnapshot}
+                        disabled={isRefreshing || isDeleting}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-semibold border border-red-200 dark:border-red-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isDeleting
+                          ? <><Loader2 className="w-3 h-3 animate-spin" />Removing…</>
+                          : <><Trash2 className="w-3 h-3" />{confirmDelete ? 'Confirm remove?' : 'Remove saved GitHub data'}</>}
+                      </button>
+
+                      {confirmDelete && !isDeleting && (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDelete(false)}
+                          className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 underline"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Refresh feedback */}
+                    {refreshMsg && (
+                      <p className={`mt-1.5 text-xs font-medium ${refreshMsg.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
+                        {refreshMsg.text}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
+                    Your GitHub data will be saved for your next analyses.
+                  </p>
+                )}
               </div>
 
               {/* Resume Upload */}
