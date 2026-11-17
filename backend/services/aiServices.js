@@ -1,7 +1,7 @@
 import { generateText, Output } from 'ai';
 import { google } from '@ai-sdk/google';
-import { aiAnalysisSchema } from '../schemas/aiSchema.js';
 import { groq } from '@ai-sdk/groq';
+import { aiAnalysisSchema, milestoneQuizSchema } from '../schemas/aiSchema.js';
 
 function safeJsonParse(text) {
     try {
@@ -229,24 +229,11 @@ export async function generateMilestoneQuiz(targetRole, curriculumData, isFinal 
             ? `Generate a comprehensive final mock technical assessment (15 questions) for a ${targetRole} covering this entire roadmap:\n${JSON.stringify(curriculumData)}`
             : `Generate a milestone technical quiz (5-8 questions) for a ${targetRole} based SPECIFICALLY on the topics and tasks covered in this week:\n${JSON.stringify(curriculumData)}`;
 
-        const { text } = await generateText({
-            model: groq('qwen/qwen3.8-27b'),
+        const { output: parsedQuiz } = await generateText({
+            model: google('gemini-2.5-flash'),
+            output: Output.object({ schema: milestoneQuizSchema }),
             system: `You are an expert Senior Technical Interviewer and Engineering Manager. 
             Your task is to generate a strict, multiple-choice quiz based on the curriculum provided.
-            
-            OUTPUT FORMAT:
-            You MUST return ONLY a valid JSON object. No conversational text, no markdown blocks, no backticks.
-            The JSON must perfectly match this exact structure:
-            {
-                "questions": [
-                    {
-                        "questionText": "What is the primary purpose of...",
-                        "options": ["Option A", "Option B", "Option C", "Option D"],
-                        "correctAnswer": "Option B",
-                        "explanation": "Option B is correct because..."
-                    }
-                ]
-            }
             
             RULES:
             1. Provide exactly 4 options per question.
@@ -256,14 +243,10 @@ export async function generateMilestoneQuiz(targetRole, curriculumData, isFinal 
             prompt: promptText
         });
 
-        //strip markdown formatting to guarantee safe JSON parsing
-        const cleanJsonText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-        const parsedQuiz = safeJsonParse(cleanJsonText);
-
         return parsedQuiz.questions || [];
 
     } catch (error) {
-        console.error('Error generating quiz with Groq:', error);
+        console.error('Error generating quiz with Google AI:', error);
         throw new Error('Failed to generate milestone quiz.');
     }
 }
