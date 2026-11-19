@@ -4,6 +4,7 @@ import { Loader2, X, BrainCircuit } from 'lucide-react';
 import useRoadmapStore from '../store/useRoadmapStore';
 import QuestionCard from '../components/QuestionCard';
 import QuizResults from '../components/QuizResults';
+import Navbar from '../components/Navbar';
 import { API_URL } from '../lib/api';
 
 export default function QuizPage() {
@@ -111,13 +112,16 @@ export default function QuizPage() {
     // UI: Results State (Quiz Complete)
     if (finalScore !== null) {
         return (
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 sm:p-8">
-                <QuizResults
-                    questions={questions}
-                    userAnswers={userAnswers}
-                    score={finalScore}
-                    onBackToRoadmap={handleQuit}
-                />
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
+                <Navbar />
+                <main className="flex-1 px-4 sm:px-8 py-8">
+                    <QuizResults
+                        questions={questions}
+                        userAnswers={userAnswers}
+                        score={finalScore}
+                        onBackToRoadmap={handleQuit}
+                    />
+                </main>
             </div>
         );
     }
