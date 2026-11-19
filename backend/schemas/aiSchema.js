@@ -1,5 +1,28 @@
 import { z } from 'zod';
 
+// --- Roadmap Generation Schema ---
+const roadmapTaskSchema = z.object({
+    taskDescription: z.string().describe("Concise task description, 12 words or fewer."),
+    estimatedHours: z.number().describe("Estimated hours to complete the task."),
+    associatedSkill: z.string().describe("Must exactly match a skill name from the skill gap profile.")
+});
+
+const roadmapDaySchema = z.object({
+    dayNumber: z.number().int().min(1).max(7).describe("Day of the week (1–7)."),
+    topics: z.array(z.string()).length(2).describe("Exactly 2 topic strings covered on this day."),
+    tasks: z.array(roadmapTaskSchema).length(2).describe("Exactly 2 tasks for this day.")
+});
+
+const roadmapWeekSchema = z.object({
+    weekNumber: z.number().int().min(1).describe("The sequential week number in the overall plan."),
+    weekFocus: z.string().describe("Short focus summary, 8 words or fewer."),
+    days: z.array(roadmapDaySchema).length(7).describe("Exactly 7 day objects, one per day of the week.")
+});
+
+export const roadmapChunkSchema = z.object({
+    weeks: z.array(roadmapWeekSchema).describe("Array of week objects for the requested chunk.")
+});
+
 // --- Quiz Generation Schema ---
 export const quizQuestionSchema = z.object({
     questionText: z.string().describe("The full text of the multiple-choice question."),

@@ -1,36 +1,7 @@
 import { generateText, Output } from 'ai';
 import { google } from '@ai-sdk/google';
 import { groq } from '@ai-sdk/groq';
-import { aiAnalysisSchema, milestoneQuizSchema } from '../schemas/aiSchema.js';
-
-function safeJsonParse(text) {
-    try {
-        return JSON.parse(text);
-    } catch (firstErr) {
-        try {
-            const stack = [];
-            const pairs = { '{': '}', '[': ']' };
-            const closes = new Set(['}', ']']);
-            let inString = false;
-            let escape = false;
-            for (const ch of text) {
-                if (escape) { escape = false; continue; }
-                if (ch === '\\' && inString) { escape = true; continue; }
-                if (ch === '"') { inString = !inString; continue; }
-                if (inString) continue;
-                if (pairs[ch]) stack.push(pairs[ch]);
-                else if (closes.has(ch)) stack.pop();
-            }
-            // Remove trailing commas then close all open structures
-            let repaired = text.trimEnd().replace(/,\s*$/, '');
-            while (stack.length) repaired += stack.pop();
-            return JSON.parse(repaired);
-        } catch (secondErr) {
-            // Re-throw the original, more descriptive error
-            throw firstErr;
-        }
-    }
-}
+import { aiAnalysisSchema, milestoneQuizSchema, roadmapChunkSchema } from '../schemas/aiSchema.js';
 
 export async function generateAnalysis(analysisData) {
     try {
@@ -80,7 +51,6 @@ export async function generateTechnicalRoadmap(analysisData) {
         const totalWeeklyHours = analysisData.studyHours * 7;
         const totalWeeks = analysisData.weeksDuration;
 
-        // Shared system prompt — identical for every chunk call
         const systemPrompt = `You are an expert Technical Curriculum Engineer.
 Generate a day-by-day learning schedule for ONLY the specific weeks you are asked for.
 
@@ -91,34 +61,13 @@ RULES:
    - 28+ hrs/week → include architecture, testing, deployment tasks.
 3. 80% of tasks address MISSING skills. 20% are interview prep / refreshers.
 4. Every task MUST have "associatedSkill" matching a skill name from the profile exactly.
-5. BREVITY (critical — keeps JSON small):
+5. BREVITY (critical — keeps output small):
    - taskDescription: ≤ 12 words
    - weekFocus: ≤ 8 words
    - topics: exactly 2 strings
    - days per week: exactly 7
-   - tasks per day: exactly 2
+   - tasks per day: exactly 2`;
 
-OUTPUT: Return ONLY a valid JSON object. No markdown, no code fences, no explanation text.
-Schema:
-{
-  "weeks": [
-    {
-      "weekNumber": 1,
-      "weekFocus": "short focus",
-      "days": [
-        {
-          "dayNumber": 1,
-          "topics": ["Topic A", "Topic B"],
-          "tasks": [
-            { "taskDescription": "concise task", "estimatedHours": 2, "associatedSkill": "Skill Name" }
-          ]
-        }
-      ]
-    }
-  ]
-}`;
-
-        // Shared context injected into every chunk prompt
         const contextBlock = `Target Role: ${analysisData.targetRole}
 Level: ${analysisData.experienceLevel}
 Weekly Budget: ${totalWeeklyHours} hrs/week | Total Plan: ${totalWeeks} weeks
@@ -129,7 +78,6 @@ ${JSON.stringify(analysisData.aiAnalysis, null, 2)}
 [Job Description]
 ${analysisData.jobDescription}`;
 
-        // Generate 2 weeks per API call, stitch them together
         const CHUNK_SIZE = 2;
         const allWeeks = [];
 
@@ -140,29 +88,19 @@ ${analysisData.jobDescription}`;
 
             console.log(`[Roadmap] Generating ${chunkLabel} of ${totalWeeks}...`);
 
-            const { text: chunkText } = await generateText({
+            const { output: chunk } = await generateText({
                 model: google('gemini-2.5-flash'),
+                output: Output.object({ schema: roadmapChunkSchema }),
                 maxOutputTokens: 8192,
                 system: systemPrompt,
                 prompt: `${contextBlock}
 
 TASK: Generate ONLY ${chunkLabel} (weekNumber ${startWeek}${numWeeks > 1 ? ` through ${endWeek}` : ''}).
 ${startWeek > 1 ? `Continue progressively from week ${startWeek - 1}. Do not repeat earlier topics.` : 'Start from the most critical missing skills.'}
-Return a JSON object with a "weeks" array containing exactly ${numWeeks} week object(s).`,
+Return a "weeks" array containing exactly ${numWeeks} week object(s).`,
             });
 
-            // Strip any accidental markdown fences
-            const stripped = chunkText.replace(/```json/gi, '').replace(/```/g, '').trim();
-            const firstBrace = stripped.indexOf('{');
-            const lastBrace = stripped.lastIndexOf('}');
-
-            if (firstBrace === -1 || lastBrace === -1) {
-                console.error(`[Roadmap] No JSON found in chunk ${chunkLabel}:`, chunkText);
-                throw new Error(`No valid JSON in roadmap chunk ${chunkLabel}.`);
-            }
-
-            const parsed = safeJsonParse(stripped.slice(firstBrace, lastBrace + 1));
-            const weeks = parsed?.weeks;
+            const weeks = chunk?.weeks;
 
             if (!Array.isArray(weeks) || weeks.length === 0) {
                 throw new Error(`Chunk ${chunkLabel} returned no week data.`);
@@ -175,7 +113,7 @@ Return a JSON object with a "weeks" array containing exactly ${numWeeks} week ob
             console.log(`[Roadmap] ✓ ${chunkLabel} complete (${weeks.length} week(s))`);
         }
 
-        console.log(`[Roadmap] ✅ Done — ${allWeeks.length}/${totalWeeks} weeks generated.`);
+        console.log(`[Roadmap] Done — ${allWeeks.length}/${totalWeeks} weeks generated.`);
         return { weeks: allWeeks };
 
     } catch (error) {
